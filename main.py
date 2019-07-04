@@ -119,15 +119,15 @@ def test_2d_render():
 # Orthographic projection
 # https://en.wikipedia.org/wiki/3D_projection#Orthographic_projection
 cube_points = [
-    P(-10, -10,  10),
-    P( 10, -10,  10),
-    P( 10,  10,  10),
-    P(-10,  10,  10),
+    P(-1, -1,  2),
+    P( 1, -1,  2),
+    P( 1,  1,  2),
+    P(-1,  1,  2),
 
-    P(-10, -10,  1),
-    P( 10, -10,  1),
-    P( 10,  10,  1),
-    P(-10,  10,  1),
+    P(-1, -1,  1),
+    P( 1, -1,  1),
+    P( 1,  1,  1),
+    P(-1,  1,  1),
 ]
 
 def test_ortho_render():
@@ -147,14 +147,54 @@ def test_ortho_render():
 # test_ortho_render()
 
 
-def test_persp_render():
+def test_easy_persp_render():
     # https://en.wikipedia.org/wiki/Camera_matrix
     def persp(p):
         fovy = 2
         xyinput = [[p.x], [p.y]]
         offset = [[255], [255]]
         o = fovy/p.z * np.matrix(xyinput) + np.matrix(offset)
-        return P(o[0][0], o[1][0])
+        return P(o[0], o[1])
+
+    for p in cube_points:
+        op = persp(p)
+        draw_pixel(op.x, op.y, (255, 255, 255))
+
+    show_buffer(color_buffer)
+
+#test_easy_persp_render()
+
+
+def test_persp_render():
+    def persp(p):
+        # https://gitlab.freedesktop.org/mesa/mesa/blob/master/src/mesa/math/m_matrix.c
+
+        # Params
+        left = -2 
+        right = 2
+        bottom = 2
+        top = -2
+        near = 1
+        far = 10
+
+        x = (2 * near) / (right - left);
+        y = (2 * near) / (top - bottom);
+        a = (right + left) / (right - left);
+        b = (top + bottom) / (top - bottom);
+        c = -(far + near) / (far - near);
+        d = -(2 * far * near) / (far - near);
+
+        m = np.matrix([
+            [x,  0,  a,  0],
+            [0,  y,  b,  0],
+            [0,  0,  c,  d],
+            [0,  0, -1,  0],
+        ])
+
+        o = m * np.matrix([[p.x], [p.y], [p.z], [1]])
+        o /= o[3]
+
+        return P(o[0], o[1])
 
     for p in cube_points:
         op = persp(p)
