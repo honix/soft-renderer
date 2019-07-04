@@ -6,9 +6,10 @@ def lerp(a, b, t):
     return a + (b - a) * t
 
 class P:
-    def __init__(self, x, y):
+    def __init__(self, x, y, z = 0):
         self.x = x
         self.y = y
+        self.z = z
 
     def distance(self, other):
         return math.sqrt(math.pow(self.x - other.x, 2) + 
@@ -17,14 +18,21 @@ class P:
 
 w, h = 512, 512
 
-data = np.zeros((h, w, 3), dtype=np.uint8)
+color_buffer = np.zeros((h, w, 3), dtype=np.uint8)
+
+def draw_pixel(x, y, color):
+    # X and Y are flipped in buffer, so..
+    try:
+        color_buffer[y, x] = color
+    except Exception as ex:
+        print(ex)
 
 def shader(p):
-    return (p.x * 255, p.y * 255, 0)
+    return (p.x * 255, p.y * 255, 128)
 
 for x in range(w):
     for y in range(h):
-        data[y, x] = shader(P(x/w, y/h))
+        draw_pixel(x, y, shader(P(x/w, y/h)))
 
 
 def draw_rect(p1, p2, color):
@@ -36,7 +44,7 @@ def draw_rect(p1, p2, color):
         for cy in range(maxy - miny):
             x = cx + minx
             y = cy + miny
-            data[y, x] = color
+            draw_pixel(x, y, color)
 
 def draw_line(p1, p2, color):
     # Some kind of Bresenhams line algorithm
@@ -47,21 +55,27 @@ def draw_line(p1, p2, color):
     err = dx + dy
     movex, movey = p1.x, p1.y
     while True:
-        data[int(movey), int(movex)] = color
-        if movex >= p2.x and movey >= p2.y: break
-        erri = 2 * err
+        draw_pixel(int(movex), int(movey), color)
+        erri = err + err
         if erri >= dy:
             err += dy
             movex += sx
         if erri <= dx:
             err += dx
             movey += sy
+        if movex == p2.x and movey == p2.y: break
 
-def draw_triangle(p1, p2, p3, color):
+def draw_wire_triangle(p1, p2, p3, color):
+    draw_line(p1, p2, color)
+    draw_line(p2, p3, color)
+    draw_line(p3, p1, color)
+
+def draw_fill_triangle(p1, p2, p3, color):
     # Edge Function
     def edge(a, b, c):
         return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x) >= 0
 
+    # TODO: try span method https://www.joshbeam.com/articles/triangle_rasterization/
     minx = min(p1.x, p2.x, p3.x)
     miny = min(p1.y, p2.y, p3.y)
     maxx = max(p1.x, p2.x, p3.x)
@@ -76,17 +90,39 @@ def draw_triangle(p1, p2, p3, color):
             inside &= edge(p2, p3, point)
             inside &= edge(p3, p1, point)
             if inside:
-                data[y, x] = color
+                draw_pixel(x, y, color)
     
+def test_2d_render():
+    for i in range(0, 255, 15):
+        draw_line(P(10, 10), P(w-10, h-10-i), (0, 0, 128))
+    for i in range(0, 255, 15):
+        draw_line(P(w-10, 10), P(10, h-10-i), (0, 0, 128))
+    for i in range(0, w, 15):
+        draw_line(P(i, 10), P(w/2, h-10), (0, 0, 128))
+    draw_fill_triangle(P(15, 15), P(10, 100), P(50, 10), (0, 128, 0))
+    draw_wire_triangle(P(15, 15), P(10, 100), P(50, 10), (0, 0, 0))
+    draw_rect(P(50, 50), P(100, 100), (128, 0, 0))
+    draw_pixel(255, 255, (255, 255, 255))
 
-for i in range(0, 255, 15):
-    draw_line(P(10, 10), P(w-10, h-10-i), (0, 0, 128))
-for i in range(0, 255, 15):
-    draw_line(P(w-10, 10), P(10, h-10-i), (0, 0, 128))
-for i in range(0, w, 15):
-    draw_line(P(i, 10), P(w/2, h-10), (0, 0, 128))
-draw_triangle(P(15, 15), P(10, 100), P(50, 10), (0, 128, 0))
-draw_rect(P(50, 50), P(100, 100), (128, 0, 0))
+    img = Image.fromarray(color_buffer, 'RGB')
+    img.show()
 
-img = Image.fromarray(data, 'RGB')
-img.show()
+test_2d_render()
+
+# Orthographic projection
+# https://en.wikipedia.org/wiki/3D_projection#Orthographic_projection
+cube_points = [
+    P(-1, -1,  1),
+    P( 1, -1,  1),
+    P( 1,  1,  1),
+    P(-1,  1,  1),
+
+    P(-1, -1, -1),
+    P( 1, -1, -1),
+    P( 1,  1, -1),
+    P(-1,  1, -1),
+]
+
+
+# Perspective projection
+# https://en.wikipedia.org/wiki/3D_projection#Mathematical_formula
