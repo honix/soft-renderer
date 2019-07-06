@@ -2,6 +2,7 @@ import numpy as np
 import math
 
 # https://en.wikipedia.org/wiki/Camera_matrix
+# https://www.youtube.com/watch?v=mpTl003EXCY&list=LLa6zoMLQWrtFEn4pp0W2Tzg
 
 # TODO: ortho
 # TODO: look-at
