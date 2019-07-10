@@ -27,46 +27,48 @@ def test_2d_render():
 
     color_buffer.show()
 
-test_2d_render()
+#test_2d_render()
 
 cube_points = [
-    P(-1, -1,  2),
-    P( 1, -1,  2),
-    P( 1,  1,  2),
-    P(-1,  1,  2),
-
     P(-1, -1,  1),
     P( 1, -1,  1),
     P( 1,  1,  1),
     P(-1,  1,  1),
 
-    P(0,  -1.5,  1.5),
+    P(-1, -1,  -1),
+    P( 1, -1,  -1),
+    P( 1,  1,  -1),
+    P(-1,  1,  -1),
+
+    P(0,  -1,   0),
 ]
 
 def test_persp_render():
-    color_buffer = Buffer(512, 512)
+    color_buffer = Buffer(1024, 512)
 
     def persp(p):
 
-        m = matrices.frustrum()
+        proj = matrices.frustrum()
 
-        mm = np.matrix([
-            [255,   0,   0,   0],
-            [  0, 255,   0,   0],
-            [  0,   0,   1,   0],
-            [  0,   0,   0,   1],
+        trans = np.matrix([
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, -3],
+            [0, 0, 0, 1]
         ])
 
         # TODO: clean up usage of matrices
-        o = m * mm * np.matrix([[p.x], [p.y], [p.z], [1]])
+        o = proj * trans * np.matrix([[p.x], [p.y], [p.z], [1]])
         o /= o[3]
 
-        # TODO: cam pos by matrices
-        return P(o[0] + 255, o[1] + 255)
+        return P(o[0] + color_buffer.w / color_buffer.h, o[1] + 1)
 
     for p in cube_points:
         op = persp(p)
-        color_buffer.draw_pixel(op.x, op.y, (255, 255, 255))
+        color_buffer.draw_pixel(
+            op.x * color_buffer.h / 2, 
+            op.y * color_buffer.h / 2, 
+            (255, 255, 255))
 
     color_buffer.show()
 
