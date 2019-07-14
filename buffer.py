@@ -14,9 +14,11 @@ class Buffer:
         img.show()
 
     def draw_pixel(self, x, y, color):
+        x = int(x)
+        y = int(y)
         # X and Y are flipped in buffer, so..
         if (0 <= x < self.w and 0 <= y < self.h):
-            self.data[int(y), int(x)] = color
+            self.data[y, x] = color
 
     def draw_shader(self, shader):
         for x in range(self.w):
@@ -35,6 +37,9 @@ class Buffer:
                 self.draw_pixel(x, y, color)
 
     def draw_line(self, p1, p2, color):
+        p1.integrate()
+        p2.integrate()
+
         # Some kind of Bresenhams line algorithm
         dx = abs(p2.x - p1.x)
         sx = 1 if p1.x < p2.x else -1
@@ -46,8 +51,9 @@ class Buffer:
         i = 0
         while True:
             # TODO: oh i dont like infinity loops
-            i += 1
-            if i > 255 : break
+            # i += 1
+            # if i > 255 : 
+            #     break
 
             self.draw_pixel(movex, movey, color)
             erri = err + err

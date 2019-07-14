@@ -106,7 +106,7 @@ def test_persp_render():
         for vertex in vertices:
             color_buffer.draw_pixel(
                 vertex.x,
-                vertex.y, 
+                vertex.y,
                 (255, 25, 25))
 
     color_buffer.show()
