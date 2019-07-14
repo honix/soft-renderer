@@ -56,6 +56,7 @@ class Buffer:
             #     break
 
             self.draw_pixel(movex, movey, color)
+            if movex == p2.x and movey == p2.y: break
             erri = err + err
             if erri >= dy:
                 err += dy
@@ -63,7 +64,6 @@ class Buffer:
             if erri <= dx:
                 err += dx
                 movey += sy
-            if movex == p2.x and movey == p2.y: break
 
     def draw_wire_triangle(self, p1, p2, p3, color):
         self.draw_line(p1, p2, color)

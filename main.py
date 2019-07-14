@@ -44,26 +44,41 @@ cube_points = [
 ]
 
 # TODO: mesh will be a class
+# cube.png
 cube_mesh = {
     'vertices': [
-        P(-1, -1,  2), # 0
-        P( 1, -1,  2), # 1
-        P( 1,  1,  2), # 2
-        P(-1,  1,  2), # 3
+        P(-1, -1,  1), # 0
+        P( 1, -1,  1), # 1
+        P( 1,  1,  1), # 2
+        P(-1,  1,  1), # 3
 
-        P(-1, -1,  1), # 4
-        P( 1, -1,  1), # 5
-        P( 1,  1,  1), # 6
-        P(-1,  1,  1), # 7
+        P(-1, -1, -1), # 4
+        P( 1, -1, -1), # 5
+        P( 1,  1, -1), # 6
+        P(-1,  1, -1), # 7
+
+        P( 0, -1,  0), # 8
     ],
     'triangles': [
         # TODO: will be triangle a class? (normal calculation, etc)
         # anti clock-wice
-        [0, 2, 1],
+        [0, 2, 1], # back face
         [0, 3, 2],
 
-        [4, 6, 5],
+        [4, 6, 5], # front face
         [4, 7, 6],
+
+        [4, 1, 5], # up face
+        [4, 0, 1],
+
+        [7, 2, 6], # down face
+        [7, 3, 2],
+
+        [4, 3, 0], # left face
+        [4, 7, 3],
+
+        [1, 6, 5], # right face
+        [1, 2, 6],
     ]
 }
 
@@ -77,7 +92,7 @@ def test_persp_render():
         trans = np.matrix([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [0, 0, 1, -4],
+            [0, 0, 1, -3],
             [0, 0, 0, 1]
         ])
 
@@ -103,11 +118,12 @@ def test_persp_render():
         vertices = list(map(lambda x: screen_vertices[x], triangle))
         color_buffer.draw_fill_triangle(*vertices, (25, 25, 25))
         color_buffer.draw_wire_triangle(*vertices, (25, 25, 255))
-        for vertex in vertices:
-            color_buffer.draw_pixel(
-                vertex.x,
-                vertex.y,
-                (255, 25, 25))
+        
+    for vertex in screen_vertices:
+        color_buffer.draw_pixel(
+            vertex.x,
+            vertex.y,
+            (255, 25, 25))
 
     color_buffer.show()
 
