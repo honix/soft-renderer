@@ -27,7 +27,7 @@ def test_2d_render():
 
     color_buffer.show()
 
-test_2d_render()
+#test_2d_render()
 
 cube_points = [
     P(-1, -1,  2),
@@ -42,6 +42,27 @@ cube_points = [
 
     P(0,  -1.5,  1.5),
 ]
+
+# TODO: mesh will be a class
+cube_mesh = {
+    'vertices': [
+        P(-1, -1,  2), # 0
+        P( 1, -1,  2), # 1
+        P( 1,  1,  2), # 2
+        P(-1,  1,  2), # 3
+
+        P(-1, -1,  1), # 4
+        P( 1, -1,  1), # 5
+        P( 1,  1,  1), # 6
+        P(-1,  1,  1), # 7
+    ],
+    'triangles': [
+        # TODO: will be triangle a class? (normal calculation, etc)
+        # anti clock-wice
+        [0, 2, 1],
+        [0, 3, 2],
+    ]
+}
 
 def test_persp_render():
     color_buffer = Buffer(512, 512)
@@ -64,8 +85,11 @@ def test_persp_render():
         # TODO: cam pos by matrices
         return P(o[0] + 255, o[1] + 255)
 
-    for p in cube_points:
-        op = persp(p)
+    screen_vertices = list(map(persp, cube_mesh['vertices']))
+
+    for triangle in cube_mesh['triangles']:
+        vertices = list(map(lambda x: screen_vertices[x], triangle))
+        color_buffer.draw_wire_triangle(*vertices, (255, 255, 255))
         color_buffer.draw_pixel(op.x, op.y, (255, 255, 255))
 
     color_buffer.show()
