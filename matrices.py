@@ -2,22 +2,23 @@ import numpy as np
 import math
 
 # https://en.wikipedia.org/wiki/Camera_matrix
+# https://www.brainvoyager.com/bv/doc/UsersGuide/CoordsAndTransforms/SpatialTransformationMatrices.html
 # https://www.youtube.com/watch?v=mpTl003EXCY&list=LLa6zoMLQWrtFEn4pp0W2Tzg
 
 # TODO: ortho
 # TODO: look-at
 
 # https://gitlab.freedesktop.org/mesa/mesa/blob/master/src/mesa/math/m_matrix.c#L982
-def frustrum(left = -2, right = 2,
-             bottom = 2, top = -2,
-             near = 1, far = 5):
+def frustrum(left = -1, right = 1,
+             bottom = -1, top = 1,
+             near = 1, far = 10):
 
-    x = (2 * near) / (right - left);
-    y = (2 * near) / (top - bottom);
-    a = (right + left) / (right - left);
-    b = (top + bottom) / (top - bottom);
-    c = -(far + near) / (far - near);
-    d = -(2 * far * near) / (far - near);
+    x = (2 * near) / (right - left)
+    y = (2 * near) / (top - bottom)
+    a = (right + left) / (right - left)
+    b = (top + bottom) / (top - bottom)
+    c = -(far + near) / (far - near)
+    d = -(2 * far * near) / (far - near)
 
     return np.matrix([
         [x,  0,  a,  0],

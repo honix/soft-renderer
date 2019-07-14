@@ -15,11 +15,8 @@ class Buffer:
 
     def draw_pixel(self, x, y, color):
         # X and Y are flipped in buffer, so..
-        #try:
-        #print(f'{int(x)} {int(y)}')
-        self.data[int(y), int(x)] = color
-        #except Exception as ex:
-        #    print(ex)
+        if (0 <= x <= self.w and 0 <= y <= self.h):
+            self.data[int(y), int(x)] = color
 
     def draw_shader(self, shader):
         for x in range(self.w):
