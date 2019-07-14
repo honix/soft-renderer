@@ -1,4 +1,5 @@
 import numpy as np
+from math import pi, cos, sin
 
 import matrices
 from buffer import Buffer
@@ -89,15 +90,24 @@ def test_persp_render():
 
         proj = matrices.frustrum()
 
+        # TODO: move and interface those matrices to the file
         trans = np.matrix([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 1, -3],
-            [0, 0, 0, 1]
+            [0, 0, 0, 1],
+        ])
+
+        t = 1/12 * pi
+        rot_y = np.matrix([
+            [ cos(t),      0, sin(t), 0],
+            [      0,      1,      0, 0],
+            [-sin(t),      0, cos(t), 0],
+            [      0,      0,      0, 1],
         ])
 
         # TODO: clean up usage of matrices
-        o = proj * trans * np.matrix([[p.x], [p.y], [p.z], [1]])
+        o = proj * trans * rot_y * np.matrix([[p.x], [p.y], [p.z], [1]])
         o /= o[3]
 
         return P(o.item(0) + color_buffer.w / color_buffer.h, o.item(1) + 1)
