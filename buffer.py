@@ -15,7 +15,7 @@ class Buffer:
 
     def draw_pixel(self, x, y, color):
         # X and Y are flipped in buffer, so..
-        if (0 <= x <= self.w and 0 <= y <= self.h):
+        if (0 <= x < self.w and 0 <= y < self.h):
             self.data[int(y), int(x)] = color
 
     def draw_shader(self, shader):
@@ -42,7 +42,13 @@ class Buffer:
         sy = 1 if p1.y < p2.y else -1
         err = dx + dy
         movex, movey = p1.x, p1.y
+
+        i = 0
         while True:
+            # TODO: oh i dont like infinity loops
+            i += 1
+            if i > 255 : break
+
             self.draw_pixel(movex, movey, color)
             erri = err + err
             if erri >= dy:
@@ -68,8 +74,8 @@ class Buffer:
         miny = min(p1.y, p2.y, p3.y)
         maxx = max(p1.x, p2.x, p3.x)
         maxy = max(p1.y, p2.y, p3.y)
-        for cx in range(maxx - minx):
-            for cy in range(maxy - miny):
+        for cx in range(int(maxx - minx)):
+            for cy in range(int(maxy - miny)):
                 x = cx + minx
                 y = cy + miny
                 point = P(x, y)

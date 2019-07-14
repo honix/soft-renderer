@@ -61,6 +61,9 @@ cube_mesh = {
         # anti clock-wice
         [0, 2, 1],
         [0, 3, 2],
+
+        [4, 6, 5],
+        [4, 7, 6],
     ]
 }
 
@@ -74,7 +77,7 @@ def test_persp_render():
         trans = np.matrix([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [0, 0, 1, -3],
+            [0, 0, 1, -4],
             [0, 0, 0, 1]
         ])
 
@@ -82,17 +85,29 @@ def test_persp_render():
         o = proj * trans * np.matrix([[p.x], [p.y], [p.z], [1]])
         o /= o[3]
 
-        return P(o[0] + color_buffer.w / color_buffer.h, o[1] + 1)
+        return P(o.item(0) + color_buffer.w / color_buffer.h, o.item(1) + 1)
 
-    screen_vertices = list(map(persp, cube_mesh['vertices']))
+    def screen(p):
+        return P(
+            p.x * color_buffer.h / 2, 
+            p.y * color_buffer.h / 2,
+            p.z
+        )
+
+    def trans(p):
+        return screen(persp(p))
+
+    screen_vertices = list(map(trans, cube_mesh['vertices']))
 
     for triangle in cube_mesh['triangles']:
         vertices = list(map(lambda x: screen_vertices[x], triangle))
-        color_buffer.draw_wire_triangle(*vertices, (255, 255, 255))
-        color_buffer.draw_pixel(
-            op.x * color_buffer.h / 2, 
-            op.y * color_buffer.h / 2, 
-            (255, 255, 255))
+        color_buffer.draw_fill_triangle(*vertices, (25, 25, 25))
+        color_buffer.draw_wire_triangle(*vertices, (25, 25, 255))
+        for vertex in vertices:
+            color_buffer.draw_pixel(
+                vertex.x,
+                vertex.y, 
+                (255, 25, 25))
 
     color_buffer.show()
 
