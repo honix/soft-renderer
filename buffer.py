@@ -1,13 +1,14 @@
 from PIL import Image
 import numpy as np
 
-from point import P
+from point import Point
 
 class Buffer:
-    def __init__(self, w, h):
-        self.w = w
-        self.h = h
-        self.data = np.zeros((h, w, 3), dtype=np.uint8)
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        # TODO: buffer can vary number channels
+        self.data = np.zeros((height, width, 3), dtype=np.uint8)
 
     def show(self):
         img = Image.fromarray(self.data, 'RGB')
@@ -17,13 +18,14 @@ class Buffer:
         x = int(x)
         y = int(y)
         # X and Y are flipped in buffer, so..
-        if (0 <= x < self.w and 0 <= y < self.h):
+        if (0 <= x < self.width and 0 <= y < self.height):
+            # TODO: color can be as class
             self.data[y, x] = color
 
     def draw_shader(self, shader):
-        for x in range(self.w):
-            for y in range(self.h):
-                self.draw_pixel(x, y, shader(P(x/self.w, y/self.h)))
+        for x in range(self.width):
+            for y in range(self.height):
+                self.draw_pixel(x, y, shader(Point(x/self.width, y/self.height)))
 
     def draw_rect(self, p1, p2, color):
         maxx = max(p1.x, p2.x)
@@ -48,13 +50,7 @@ class Buffer:
         err = dx + dy
         movex, movey = p1.x, p1.y
 
-        i = 0
         while True:
-            # TODO: oh i dont like infinity loops
-            # i += 1
-            # if i > 255 : 
-            #     break
-
             self.draw_pixel(movex, movey, color)
             if movex == p2.x and movey == p2.y: break
             erri = err + err
@@ -84,7 +80,7 @@ class Buffer:
             for cy in range(int(maxy - miny)):
                 x = cx + minx
                 y = cy + miny
-                point = P(x, y)
+                point = Point(x, y)
                 inside = True
                 inside &= edge(p1, p2, point)
                 inside &= edge(p2, p3, point)
