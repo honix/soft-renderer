@@ -1,5 +1,5 @@
 import numpy as np
-from math import pi, cos, sin
+import math
 
 import matrices
 from buffer import Buffer
@@ -86,43 +86,18 @@ cube_mesh = {
 def test_persp_render():
     color_buffer = Buffer(1024, 512)
 
-    def persp(p):
+    def transform(p):
+        transform = (matrices.screen(color_buffer.w, color_buffer.h) *
+                     matrices.frustrum() *
+                     matrices.transpose(0, 0 , -3) *
+                     matrices.rotate_y(1/12 * math.pi))
 
-        proj = matrices.frustrum()
+        point = transform * np.matrix([[p.x], [p.y], [p.z], [1]])
+        point /= point[3]
+                
+        return P(point.item(0), point.item(1))
 
-        # TODO: move and interface those matrices to the file
-        trans = np.matrix([
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, -3],
-            [0, 0, 0, 1],
-        ])
-
-        t = 1/12 * pi
-        rot_y = np.matrix([
-            [ cos(t),      0, sin(t), 0],
-            [      0,      1,      0, 0],
-            [-sin(t),      0, cos(t), 0],
-            [      0,      0,      0, 1],
-        ])
-
-        # TODO: clean up usage of matrices
-        o = proj * trans * rot_y * np.matrix([[p.x], [p.y], [p.z], [1]])
-        o /= o[3]
-
-        return P(o.item(0) + color_buffer.w / color_buffer.h, o.item(1) + 1)
-
-    def screen(p):
-        return P(
-            p.x * color_buffer.h / 2, 
-            p.y * color_buffer.h / 2,
-            p.z
-        )
-
-    def trans(p):
-        return screen(persp(p))
-
-    screen_vertices = list(map(trans, cube_mesh['vertices']))
+    screen_vertices = list(map(transform, cube_mesh['vertices']))
 
     for triangle in cube_mesh['triangles']:
         vertices = list(map(lambda x: screen_vertices[x], triangle))

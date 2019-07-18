@@ -1,5 +1,5 @@
 import numpy as np
-import math
+from math import pi, cos, sin
 
 # https://en.wikipedia.org/wiki/Camera_matrix
 # https://www.brainvoyager.com/bv/doc/UsersGuide/CoordsAndTransforms/SpatialTransformationMatrices.html
@@ -26,3 +26,27 @@ def frustrum(left = -1, right = 1,
         [0,  0,  c,  d],
         [0,  0, -1,  0],
     ])
+
+def transpose(x, y, z):
+    return np.matrix([
+        [1, 0, 0, x],
+        [0, 1, 0, y],
+        [0, 0, 1, z],
+        [0, 0, 0, 1],
+    ])
+
+def rotate_y(t):
+    return np.matrix([
+        [ cos(t),      0, sin(t), 0],
+        [      0,      1,      0, 0],
+        [-sin(t),      0, cos(t), 0],
+        [      0,      0,      0, 1],
+    ])
+
+def screen(width, height):
+    return np.matrix([
+        [height/2,        0, 0, 0],
+        [       0, height/2, 0, 0],
+        [       0,        0, 1, 0],
+        [       0,        0, 0, 1],
+    ]) * transpose(width / height, 1, 0)
