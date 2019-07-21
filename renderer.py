@@ -14,33 +14,35 @@ class Renderer():
     def show(self):
         self.color_buffer.show()
 
-    def draw_point(self, p, color):
-        pint = p.integrated()
+    def draw_pixel(self, x, y, z, color):
+        x = int(x)
+        y = int(y)
 
         # X and Y are flipped in buffer, so..
-        if (0 <= pint.x < self.width and 0 <= pint.y < self.height):
+        if 0 <= x < self.width and 0 <= y < self.height:
             # TODO: color can be as class
-            if (self.depth_test):
-                if (self.depth_buffer[pint.y, pint.x] < p.z):
+            if self.depth_test:
+                if self.depth_buffer[y, x] < z:
                     return
-                self.depth_buffer[pint.y, pint.x] = p.z
-            self.color_buffer[pint.y, pint.x] = color
+                self.depth_buffer[y, x] = z
+            self.color_buffer[y, x] = color
 
     def draw_shader(self, shader):
         for x in range(self.width):
             for y in range(self.height):
-                self.draw_point(Point(x, y), shader(Point(x/self.width, y/self.height)))
+                self.draw_pixel(x, y, 0, shader(Point(x/self.width, y/self.height)))
 
     def draw_rect(self, p1, p2, color):
         maxx = max(p1.x, p2.x)
         maxy = max(p1.y, p2.y)
         minx = min(p1.x, p2.x)
         miny = min(p1.y, p2.y)
+
         for cx in range(maxx - minx):
             for cy in range(maxy - miny):
                 x = cx + minx
                 y = cy + miny
-                self.draw_point(Point(x, y), color)
+                self.draw_pixel(x, y, 0, color)
 
     def draw_line(self, p1, p2, color):
         # TODO: iterpolate z-value
@@ -58,7 +60,7 @@ class Renderer():
         movex, movey = p1.x, p1.y
 
         while True:
-            self.draw_point(Point(movex, movey, z), color)
+            self.draw_pixel(movex, movey, z, color)
             if movex == p2.x and movey == p2.y: break
             erri = err + err
             if erri >= dy:
@@ -75,8 +77,8 @@ class Renderer():
 
     def draw_fill_triangle(self, p1, p2, p3, color):
         # Edge Function
-        def edge(a, b, c):
-            return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x) >= 0
+        def edge(a, b, x, y):
+            return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x) >= 0
 
         # TODO: try span method https://www.joshbeam.com/articles/triangle_rasterization/
         minx = min(p1.x, p2.x, p3.x)
@@ -90,10 +92,9 @@ class Renderer():
             for cy in range(int(maxy - miny)):
                 x = cx + minx
                 y = cy + miny
-                point = Point(x, y)
                 inside = True
-                inside &= edge(p1, p2, point)
-                inside &= edge(p2, p3, point)
-                inside &= edge(p3, p1, point)
+                inside &= edge(p1, p2, x, y)
+                inside &= edge(p2, p3, x, y)
+                inside &= edge(p3, p1, x, y)
                 if inside:
-                    self.draw_point(Point(x, y, z), color)
+                    self.draw_pixel(x, y, z, color)

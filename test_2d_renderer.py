@@ -18,7 +18,7 @@ def test_2d_render():
     color_buffer.draw_fill_triangle(Point(15, 15), Point(10, 100), Point(50, 10), (0, 128, 0))
     color_buffer.draw_wire_triangle(Point(15, 15), Point(10, 100), Point(50, 10), (0, 0, 0))
     color_buffer.draw_rect(Point(50, 50), Point(100, 100), (128, 0, 0))
-    color_buffer.draw_point(Point(255, 255), (255, 255, 255))
+    color_buffer.draw_pixel(255, 255, 0, (255, 255, 255))
 
     color_buffer.show()
 
