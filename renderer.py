@@ -1,13 +1,15 @@
 from buffer import Buffer
 from point import Point
 
+import numpy as np
+
 class Renderer():
     def __init__(self, width, height, depth_test=True):
         self.width = width
         self.height = height
         self.depth_test = depth_test
         self.color_buffer = Buffer(width, height, channels=3)
-        self.depth_buffer = Buffer(width, height, channels=1, fill_value=1)
+        self.depth_buffer = Buffer(width, height, channels=1, fill_value=1, dtype=np.float)
     
     def show(self):
         self.color_buffer.show()
