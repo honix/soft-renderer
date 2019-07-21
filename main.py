@@ -1,8 +1,9 @@
 import numpy as np
 import math
+import random
 
 import matrices
-from buffer import Buffer
+from renderer import Renderer
 from point import Point
 from mesh import Mesh
 
@@ -48,33 +49,33 @@ cube = Mesh(
 )
 
 def test_persp_render():
-    color_buffer = Buffer(1024, 512)
+    renderer = Renderer(1024, 512)
 
+    # TODO: split camera/world transform and object transform
     def transform(p):
-        transform = (matrices.screen(color_buffer.width, color_buffer.height) *
+        transform = (matrices.screen(renderer.width, renderer.height) *
                      matrices.frustrum() *
                      matrices.transpose(0, 0 , -3) *
-                     matrices.rotate_y(1/12 * math.pi))
+                     matrices.rotate_y(-1/6 * math.pi))
 
         point = transform * np.matrix([[p.x], [p.y], [p.z], [1]])
         point /= point[3]
-                
-        return Point(point.item(0), point.item(1))
+        
+        # TODO: Point will contain numpy array
+        return Point(point.item(0), point.item(1), point.item(2))
 
     screen_vertices = list(map(transform, cube.vertices))
 
+    # TODO: move those routines to mesh class (?)
     for triangle in cube.triangles:
         vertices = list(map(lambda x: screen_vertices[x], triangle))
-        color_buffer.draw_fill_triangle(*vertices, (25, 25, 25))
-        color_buffer.draw_wire_triangle(*vertices, (25, 25, 255))
+        renderer.draw_fill_triangle(*vertices, (25, 25, random.randint(25, 125)))
+        renderer.draw_wire_triangle(*vertices, (25, 25, 125))
         
     for vertex in screen_vertices:
-        color_buffer.draw_pixel(
-            vertex.x,
-            vertex.y,
-            (255, 25, 25))
+        renderer.draw_point(vertex, (255, 25, 25))
 
-    color_buffer.show()
+    renderer.show()
 
 test_persp_render()
 

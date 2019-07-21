@@ -1,8 +1,8 @@
-from buffer import Buffer
+from renderer import Renderer
 from point import Point
 
 def test_2d_render():
-    color_buffer = Buffer(512, 512)
+    color_buffer = Renderer(512, 512)
 
     def shader(p):
         return (p.x * 255, p.y * 255, 128)
@@ -18,7 +18,7 @@ def test_2d_render():
     color_buffer.draw_fill_triangle(Point(15, 15), Point(10, 100), Point(50, 10), (0, 128, 0))
     color_buffer.draw_wire_triangle(Point(15, 15), Point(10, 100), Point(50, 10), (0, 0, 0))
     color_buffer.draw_rect(Point(50, 50), Point(100, 100), (128, 0, 0))
-    color_buffer.draw_pixel(255, 255, (255, 255, 255))
+    color_buffer.draw_point(Point(255, 255), (255, 255, 255))
 
     color_buffer.show()
 

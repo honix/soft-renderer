@@ -1,36 +1,33 @@
-from PIL import Image
-import numpy as np
-
+from buffer import Buffer
 from point import Point
 
-class Buffer:
-    def __init__(self, width, height, channels=3, fill_value=0, dtype=np.uint8):
+class Renderer():
+    def __init__(self, width, height, depth_test=True):
         self.width = width
         self.height = height
-        self.data = np.full((height, width, channels), fill_value=fill_value, dtype=dtype)
+        self.depth_test = depth_test
+        self.color_buffer = Buffer(width, height, channels=3)
+        self.depth_buffer = Buffer(width, height, channels=1, fill_value=1)
+    
+    def show(self):
+        self.color_buffer.show()
 
-    def __setitem__(self, key, item):
-        self.data[key] = item 
+    def draw_point(self, p, color):
+        pint = p.integrated()
 
-    def __getitem__(self, key):
-        return self.data[key]
-
-    def show(self, mode='RGB'):
-        img = Image.fromarray(self.data, mode)
-        img.show()
-
-    def draw_pixel(self, x, y, color):
-        x = int(x)
-        y = int(y)
         # X and Y are flipped in buffer, so..
-        if (0 <= x < self.width and 0 <= y < self.height):
+        if (0 <= pint.x < self.width and 0 <= pint.y < self.height):
             # TODO: color can be as class
-            self.data[y, x] = color
+            if (self.depth_test):
+                if (self.depth_buffer[pint.y, pint.x] < p.z):
+                    return
+                self.depth_buffer[pint.y, pint.x] = p.z
+            self.color_buffer[pint.y, pint.x] = color
 
     def draw_shader(self, shader):
         for x in range(self.width):
             for y in range(self.height):
-                self.draw_pixel(x, y, shader(Point(x/self.width, y/self.height)))
+                self.draw_point(Point(x, y), shader(Point(x/self.width, y/self.height)))
 
     def draw_rect(self, p1, p2, color):
         maxx = max(p1.x, p2.x)
@@ -41,11 +38,14 @@ class Buffer:
             for cy in range(maxy - miny):
                 x = cx + minx
                 y = cy + miny
-                self.draw_pixel(x, y, color)
+                self.draw_point(Point(x, y), color)
 
     def draw_line(self, p1, p2, color):
-        p1.integrate()
-        p2.integrate()
+        # TODO: iterpolate z-value
+        z = sum([p1.z, p2.z]) / 2
+
+        p1 = p1.integrated()
+        p2 = p2.integrated()
 
         # Some kind of Bresenhams line algorithm
         dx = abs(p2.x - p1.x)
@@ -56,7 +56,7 @@ class Buffer:
         movex, movey = p1.x, p1.y
 
         while True:
-            self.draw_pixel(movex, movey, color)
+            self.draw_point(Point(movex, movey, z), color)
             if movex == p2.x and movey == p2.y: break
             erri = err + err
             if erri >= dy:
@@ -81,6 +81,9 @@ class Buffer:
         miny = min(p1.y, p2.y, p3.y)
         maxx = max(p1.x, p2.x, p3.x)
         maxy = max(p1.y, p2.y, p3.y)
+        # TODO: iterpolate z-value
+        z = sum([p1.z, p2.z, p3.z]) / 3
+
         for cx in range(int(maxx - minx)):
             for cy in range(int(maxy - miny)):
                 x = cx + minx
@@ -91,4 +94,4 @@ class Buffer:
                 inside &= edge(p2, p3, point)
                 inside &= edge(p3, p1, point)
                 if inside:
-                    self.draw_pixel(x, y, color)
+                    self.draw_point(Point(x, y, z), color)
