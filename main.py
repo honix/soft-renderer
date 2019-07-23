@@ -17,8 +17,8 @@ def test_persp_render():
     start = time.time_ns()
 
     # cube.png
-    cube = Mesh(
-        vertices = [
+    mesh = Mesh(
+        vertices = map(lambda v: map(lambda x: x * 40, v), [
             [-1, -1,  1], # 0
             [ 1, -1,  1], # 1
             [ 1,  1,  1], # 2
@@ -30,7 +30,7 @@ def test_persp_render():
             [-1,  1, -1], # 7
 
             [ 0, -1,  0], # 8
-        ],
+        ]),
         triangles=[
             # TODO: will be triangle a class? (normal calculation, etc)
             # anti clock-wice
@@ -54,30 +54,37 @@ def test_persp_render():
         ]
     )
 
-    renderer = Renderer(1024, 512)
+    from obj import read_obj
+
+    mesh = read_obj('teapot.obj')
+
+    renderer = Renderer(512, 512)
 
     # TODO: split camera/world transform and object transform
     def transform(numpy_vertex):
         transform = (matrices.screen(renderer.width, renderer.height) *
                      matrices.frustrum() *
-                     matrices.transpose(0, 0, -3) *
-                     matrices.rotate_y(-1/6 * math.pi))
+                     matrices.transpose(0, -2, -5) *
+                     matrices.rotate_y(0 * math.pi))
 
         numpy_vertex = transform * numpy_vertex
         numpy_vertex /= numpy_vertex[3]
 
         return Point.from_numpy(numpy_vertex)
 
-    screen_points = list(map(transform, cube.numpy_vertices))
+    screen_points = list(map(transform, mesh.numpy_vertices))
 
     # TODO: move those routines to mesh class (?)
-    for triangle in cube.triangles:
-        points = list(map(lambda x: screen_points[x], triangle))
-        renderer.draw_fill_triangle(*points, (25, 25, random.randint(25, 125)))
+    i = 0
+    for triangle in mesh.triangles:
+        i += 1
+        if i % 25 == 0: print(i)
+        points = map(lambda x: screen_points[x], triangle)
+        #renderer.draw_fill_triangle(*points, (25, 25, 125))
         renderer.draw_wire_triangle(*points, (25, 25, 255))
 
-    for point in screen_points:
-        renderer.draw_pixel(point.x, point.y, point.z, (255, 25, 25))
+    #for point in screen_points:
+    #    renderer.draw_pixel(point.x, point.y, point.z, (255, 25, 25))
 
     end = time.time_ns()
     print("{} seconds ellapsed".format((end - start) / 1000000000))

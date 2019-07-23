@@ -18,3 +18,5 @@ class Mesh:
             ])
 
         self.numpy_vertices = map(to_numpy, vertices)
+
+        print(f'Mesh created with {len(self.triangles)} triangles')

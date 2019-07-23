@@ -10,8 +10,8 @@ from math import pi, cos, sin
 
 # https://gitlab.freedesktop.org/mesa/mesa/blob/master/src/mesa/math/m_matrix.c#L982
 def frustrum(left = -1, right = 1,
-             bottom = -1, top = 1,
-             near = 1, far = 10):
+             bottom = 1, top = -1,
+             near = 1, far = 1000):
 
     x = (2 * near) / (right - left)
     y = (2 * near) / (top - bottom)
