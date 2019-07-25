@@ -9,10 +9,6 @@ from point import Point
 from mesh import Mesh
 
 
-def lerp(a, b, t):
-    return a + (b - a) * t
-
-
 def test_persp_render():
     start = time.time_ns()
 
@@ -58,7 +54,7 @@ def test_persp_render():
 
     mesh = read_obj('teapot.obj')
 
-    renderer = Renderer(512, 512)
+    renderer = Renderer(1024, 1024)
 
     # TODO: split camera/world transform and object transform
     def transform(numpy_vertex):
@@ -72,22 +68,26 @@ def test_persp_render():
 
         return Point.from_numpy(numpy_vertex)
 
+    print("Transforming points to screen pos..")
+
     screen_points = list(map(transform, mesh.numpy_vertices))
+
+    print("Rendering..")
 
     # TODO: move those routines to mesh class (?)
     i = 0
     for triangle in mesh.triangles:
         i += 1
-        if i % 25 == 0: print(i)
+        if i % 50 == 0: print(f"{i} faces drawn")
         points = map(lambda x: screen_points[x], triangle)
-        #renderer.draw_fill_triangle(*points, (25, 25, 125))
-        renderer.draw_wire_triangle(*points, (25, 25, 255))
+        renderer.draw_fill_triangle(*points, (25, 255, 25))
+        #renderer.draw_wire_triangle(*points, (25, 25, 255))
 
-    #for point in screen_points:
-    #    renderer.draw_pixel(point.x, point.y, point.z, (255, 25, 25))
+    # for point in screen_points:
+    #     renderer.draw_pixel(point.x, point.y, point.z, (255, 25, 25))
 
     end = time.time_ns()
-    print("{} seconds ellapsed".format((end - start) / 1000000000))
+    print(f"{(end - start) / 1000000000} seconds ellapsed")
 
     renderer.show()
 

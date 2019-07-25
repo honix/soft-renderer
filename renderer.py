@@ -1,5 +1,6 @@
 from buffer import Buffer
 from point import Point
+from utils import lerp
 
 import numpy as np
 
@@ -57,25 +58,62 @@ class Renderer():
         dy = -abs(p2.y - p1.y)
         sy = 1 if p1.y < p2.y else -1
         err = dx + dy
-        movex, movey = p1.x, p1.y
+        x, y = p1.x, p1.y
 
         while True:
-            self.draw_pixel(movex, movey, z, color)
-            if movex == p2.x and movey == p2.y: break
-            erri = err + err
-            if erri >= dy:
+            self.draw_pixel(x, y, z, color)
+            if x == p2.x and y == p2.y: break
+            double_err = err + err
+            if double_err >= dy:
                 err += dy
-                movex += sx
-            if erri <= dx:
+                x += sx
+            if double_err <= dx:
                 err += dx
-                movey += sy
+                y += sy
 
     def draw_wire_triangle(self, p1, p2, p3, color):
         self.draw_line(p1, p2, color)
         self.draw_line(p2, p3, color)
         self.draw_line(p3, p1, color)
 
+    def draw_fill_trapezoid(self, p1, p2, p3, p4, color):
+        # TODO: We can integrate all the points before rastering
+        p1 = p1.integrated()
+        p2 = p2.integrated()
+        p3 = p3.integrated()
+        p4 = p4.integrated()
+
+        dy = p2.y - p1.y
+        if dy == 0: return # TODO: ? or vert line
+        dxleft, dxright = p2.x - p1.x, p3.x - p4.x
+        xleft_step, xright_step = dxleft / dy, dxright / dy
+
+        xleft, xright = p1.x, p4.x
+        for y in range(p1.y, p3.y):
+            for x in range(int(xleft), int(xright)):
+                self.draw_pixel(x, y, 0, color)
+            # TODO: Can we do without float?
+            xleft += xleft_step
+            xright += xright_step
+
     def draw_fill_triangle(self, p1, p2, p3, color):
+        # TODO: check face direction
+
+        y_sort = sorted([p1, p2, p3], key=lambda p: p.y)
+        top, middle, bottom = y_sort[0], y_sort[1], y_sort[2]
+
+        middle_oposit = Point(
+            lerp(top.x, bottom.x, 
+                 (middle.y - top.y) / (bottom.y - top.y)),
+            middle.y)
+
+        x_sort = sorted([middle, middle_oposit], key=lambda p: p.x)
+        left, right = x_sort[0], x_sort[1]
+
+        self.draw_fill_trapezoid(top, left, right, top, color)
+        self.draw_fill_trapezoid(left, bottom, bottom, right, color)
+
+    def draw_fill_triangle_check_edge(self, p1, p2, p3, color):
         # Edge Function
         def edge(a, b, x, y):
             return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x) >= 0
