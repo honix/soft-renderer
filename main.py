@@ -79,10 +79,11 @@ def test_persp_render():
     for triangle in mesh.triangles:
         i += 1
         if i % 50 == 0: print(f"{i} faces drawn")
-        points = map(lambda x: screen_points[x], triangle)
+        points = list(map(lambda x: screen_points[x], triangle))
         renderer.draw_fill_triangle(*points, (25, 255, 25))
         #renderer.draw_wire_triangle(*points, (25, 25, 255))
 
+    # renderer.depth_test = False
     # for point in screen_points:
     #     renderer.draw_pixel(point.x, point.y, point.z, (255, 25, 25))
 

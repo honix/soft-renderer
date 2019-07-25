@@ -77,7 +77,9 @@ class Renderer():
         self.draw_line(p3, p1, color)
 
     def draw_fill_trapezoid(self, p1, p2, p3, p4, color):
-        # TODO: We can integrate all the points before rastering
+        # TODO: iterpolate z-value
+        z = sum([p1.z, p2.z, p3.z, p4.z]) / 4
+
         p1 = p1.integrated()
         p2 = p2.integrated()
         p3 = p3.integrated()
@@ -90,8 +92,8 @@ class Renderer():
 
         xleft, xright = p1.x, p4.x
         for y in range(p1.y, p3.y):
-            for x in range(int(xleft), int(xright)):
-                self.draw_pixel(x, y, 0, color)
+            for x in range(int(xleft) + 1, int(xright) + 1): # +1 ?
+                self.draw_pixel(x, y, z, color)
             # TODO: Can we do without float?
             xleft += xleft_step
             xright += xright_step
@@ -101,11 +103,12 @@ class Renderer():
 
         y_sort = sorted([p1, p2, p3], key=lambda p: p.y)
         top, middle, bottom = y_sort[0], y_sort[1], y_sort[2]
+        t = (middle.y - top.y) / (bottom.y - top.y)
 
         middle_oposit = Point(
-            lerp(top.x, bottom.x, 
-                 (middle.y - top.y) / (bottom.y - top.y)),
-            middle.y)
+            lerp(top.x, bottom.x, t),
+            middle.y,
+            lerp(top.z, bottom.z, t))
 
         x_sort = sorted([middle, middle_oposit], key=lambda p: p.x)
         left, right = x_sort[0], x_sort[1]
