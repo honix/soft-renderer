@@ -4,7 +4,7 @@ from utils import lerp
 
 import numpy as np
 
-class Renderer():
+class Renderer:
     def __init__(self, width, height, depth_test=True):
         self.width = width
         self.height = height

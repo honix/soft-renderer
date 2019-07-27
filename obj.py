@@ -1,8 +1,11 @@
 from mesh import Mesh
+from point import Point
+from vertex import Vertex
+from polygon import Polygon
 
 def read_obj(path):
     vertices = []
-    triangles = []
+    polygons = []
 
     with open(path) as file:
         for line in file:
@@ -17,11 +20,11 @@ def read_obj(path):
                 x = float(phrases[1])
                 y = float(phrases[2])
                 z = float(phrases[3])
-                vertices.append([x, y, z])
+                vertices.append(Vertex(Point(x, y, z)))
             elif head == 'f':
                 p1 = int(phrases[1]) - 1
                 p2 = int(phrases[2]) - 1
                 p3 = int(phrases[3]) - 1
-                triangles.append([p1, p2, p3])
+                polygons.append(Polygon([p1, p2, p3]))
             
-    return Mesh(vertices, triangles)
+    return Mesh(vertices, polygons)
