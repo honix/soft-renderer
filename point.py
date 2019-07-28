@@ -11,12 +11,11 @@ class Point:
     def from_numpy(cls, array):
         return cls(array.item(0), array.item(1), array.item(2))
 
-    @staticmethod
-    def lerp(a, b, t):
+    def lerp(self, b, t):
         return Point(
-            lerp(a.x, b.x, t),
-            lerp(a.y, b.y, t),
-            lerp(a.z, b.z, t),
+            lerp(self.x, b.x, t),
+            lerp(self.y, b.y, t),
+            lerp(self.z, b.z, t),
         )
 
     def integrated(self):
