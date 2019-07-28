@@ -21,29 +21,31 @@ def test_persp_render():
     camera_position = Point(-3, 2, 5)
 
     # TODO: split camera/world transform and object transform
-    def transform(numpy_vertex):
-        transform = (
-            matrices.screen(renderer.width, renderer.height) *
-            matrices.frustrum() *
-            matrices.rotate_y(1/6 * math.pi) *
-            matrices.transpose(*-camera_position)
-        )
+    transform_matrix = (
+        matrices.screen(renderer.width, renderer.height) *
+        matrices.frustrum() *
+        matrices.rotate_y(1/6 * math.pi) *
+        matrices.transpose(*-camera_position)
+    )
 
-        numpy_vertex = transform * numpy_vertex
-        numpy_vertex /= numpy_vertex[3]
+    def transform(vertex):
+        vertex_project = np.concatenate((vertex.position, [1]))[:,None]
+        vertex_transformed = transform_matrix @ vertex_project
+        vertex_transformed /= vertex_transformed[3]
+        vertex_unproject = np.asarray(vertex_transformed).flatten()
 
-        return Point.from_numpy(numpy_vertex)
+        return vertex_unproject.view(Point)
 
     print("Transforming points to screen pos..")
 
-    screen_points = list(map(transform, mesh.numpy_vertices))
+    screen_points = list(map(transform, mesh.vertices))
 
     print("Rendering..")
 
     # TODO: move those routines to mesh renderer class (?)
     i = 0
     for polygon in mesh.polygons:
-        if np.dot((mesh.vertices[polygon.indices[0]].position - camera_position).to_list(), polygon.normal) >= 0: continue
+        if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
         points = list(map(lambda x: screen_points[x], polygon.indices))
         renderer.depth_test = True
         renderer.draw_fill_triangle(*points, (25, 255, 25))

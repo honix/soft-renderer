@@ -1,15 +1,30 @@
 import numpy as np
 from utils import lerp
 
-class Point:
-    def __init__(self, x=0, y=0, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
+class Point(np.ndarray):
+    def __new__(cls, x=0, y=0, z=0):
+        return np.asarray([x, y, z]).view(cls)
 
-    @classmethod
-    def from_numpy(cls, array):
-        return cls(array.item(0), array.item(1), array.item(2))
+    @property
+    def xyz(self): return self[:3]
+
+    @property
+    def x(self): return self[0]
+
+    @x.setter
+    def x(self, v): self[0] = v    
+        
+    @property
+    def y(self): return self[1]
+
+    @y.setter
+    def y(self, v): self[1] = v    
+        
+    @property
+    def z(self): return self[2]
+
+    @z.setter
+    def z(self, v): self[2] = v
 
     def lerp(self, b, t):
         return Point(
@@ -19,30 +34,9 @@ class Point:
         )
 
     def integrated(self):
-        return Point(
-            int(self.x),
-            int(self.y),
-            int(self.z),         
-        )
+        return self.astype(np.int).view(Point)
 
     def to_list(self):
         return [self.x, self.y, self.z]
 
-    def __iter__(self):
-        yield self.x
-        yield self.y
-        yield self.z
-
-    def __neg__(self):
-        return Point(
-            -self.x,
-            -self.y,
-            -self.z,
-        )
-
-    def __sub__(self, other):
-        return Point(
-            self.x - other.x,
-            self.y - other.y,
-            self.z - other.z,
-        )
+    
