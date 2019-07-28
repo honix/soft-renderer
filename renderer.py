@@ -99,8 +99,6 @@ class Renderer:
             xright += xright_step
 
     def draw_fill_triangle(self, p1, p2, p3, color):
-        # TODO: check face direction
-
         y_sort = sorted([p1, p2, p3], key=lambda p: p.y)
         top, middle, bottom = y_sort[0], y_sort[1], y_sort[2]
         t = (middle.y - top.y) / (bottom.y - top.y)

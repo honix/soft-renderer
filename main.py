@@ -40,15 +40,15 @@ def test_persp_render():
 
     print("Rendering..")
 
-    # TODO: move those routines to mesh class (?)
+    # TODO: move those routines to mesh renderer class (?)
     i = 0
     for polygon in mesh.polygons:
-        if np.dot((mesh.vertices[polygon.indices[0]].position - camera_position).to_list(), polygon.normal) <= 0:
-            points = list(map(lambda x: screen_points[x], polygon.indices))
-            renderer.depth_test = True
-            renderer.draw_fill_triangle(*points, (25, 255, 25))
-            renderer.depth_test = False
-            renderer.draw_wire_triangle(*points, (25, 25, 255))
+        if np.dot((mesh.vertices[polygon.indices[0]].position - camera_position).to_list(), polygon.normal) >= 0: continue
+        points = list(map(lambda x: screen_points[x], polygon.indices))
+        renderer.depth_test = True
+        renderer.draw_fill_triangle(*points, (25, 255, 25))
+        renderer.depth_test = False
+        renderer.draw_wire_triangle(*points, (25, 25, 255))
 
         i += 1
         if i % 50 == 0: print(f"{i} polygons drawn")
