@@ -18,12 +18,16 @@ def test_persp_render():
 
     renderer = Renderer(1024, 1024)
 
+    camera_position = Point(-3, 2, 5)
+
     # TODO: split camera/world transform and object transform
     def transform(numpy_vertex):
-        transform = (matrices.screen(renderer.width, renderer.height) *
-                     matrices.frustrum() *
-                     matrices.transpose(0, -2, -5) *
-                     matrices.rotate_y(0 * math.pi))
+        transform = (
+            matrices.screen(renderer.width, renderer.height) *
+            matrices.frustrum() *
+            matrices.rotate_y(1/6 * math.pi) *
+            matrices.transpose(*-camera_position)
+        )
 
         numpy_vertex = transform * numpy_vertex
         numpy_vertex /= numpy_vertex[3]
@@ -39,8 +43,7 @@ def test_persp_render():
     # TODO: move those routines to mesh class (?)
     i = 0
     for polygon in mesh.polygons:
-        # TODO: fix this face cull condition using camera
-        if np.dot(polygon.normal, [1, 0, 1]) > 0:
+        if np.dot((mesh.vertices[polygon.indices[0]].position - camera_position).to_list(), polygon.normal) <= 0:
             points = list(map(lambda x: screen_points[x], polygon.indices))
             renderer.depth_test = True
             renderer.draw_fill_triangle(*points, (25, 255, 25))
