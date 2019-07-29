@@ -18,13 +18,13 @@ def test_persp_render():
 
     renderer = Renderer(1024, 1024)
 
-    camera_position = Point(-3, 2, 5)
+    camera_position = Point(3, 2, 5)
 
     # TODO: split camera/world transform and object transform
     transform_matrix = (
         matrices.screen(renderer.width, renderer.height) *
         matrices.frustrum() *
-        matrices.rotate_y(1/6 * math.pi) *
+        matrices.rotate_y(-1/6 * math.pi) *
         matrices.transpose(*-camera_position)
     )
 
@@ -48,9 +48,9 @@ def test_persp_render():
         if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
         points = list(map(lambda x: screen_points[x], polygon.indices))
         renderer.depth_test = True
-        renderer.draw_fill_triangle(*points, (25, 255, 25))
+        renderer.draw_fill_triangle(*points, polygon.normal * 127 + 127)
         renderer.depth_test = False
-        renderer.draw_wire_triangle(*points, (25, 25, 255))
+        #renderer.draw_wire_triangle(*points, (25, 25, 255))
 
         i += 1
         if i % 50 == 0: print(f"{i} polygons drawn")

@@ -92,7 +92,7 @@ class Renderer:
 
         xleft, xright = p1.x, p4.x
         for y in range(p1.y, p3.y):
-            for x in range(int(xleft) + 1, int(xright) + 1): # +1 ?
+            for x in range(int(xleft), int(xright)): # +1 ?
                 self.draw_pixel(x, y, z, color)
             # TODO: Can we do without float?
             xleft += xleft_step

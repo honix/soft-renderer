@@ -22,5 +22,15 @@ class Mesh:
                 pos(2) - pos(0)
             )
 
+            polygon.normal /= max(polygon.normal.max(), -polygon.normal.min())
+
     def calculate_vertices_normals(self):
-        print("calculate_vertices_normals not implemented")
+        for vertex in self.vertices:
+            vertex.normal = np.array([0, 0, 0], dtype=np.float)
+
+        for polygon in self.polygons:
+            for index in polygon.indices:
+                self.vertices[index].normal += polygon.normal
+
+        for vertex in self.vertices:
+            vertex.normal /= max(vertex.normal.max(), -vertex.normal.min())
