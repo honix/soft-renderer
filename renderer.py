@@ -1,5 +1,6 @@
 from buffer import Buffer
 from point import Point
+from vertex import Vertex
 from utils import lerp
 
 import numpy as np
@@ -76,9 +77,11 @@ class Renderer:
         self.draw_line(p2, p3, color)
         self.draw_line(p3, p1, color)
 
-    def draw_fill_trapezoid(self, p1, p2, p3, p4, color):
-        # TODO: iterpolate z-value
-        z = sum([p1.z, p2.z, p3.z, p4.z]) / 4
+    def draw_fill_trapezoid(self, v1, v2, v3, v4):
+        p1 = v1.tposition
+        p2 = v2.tposition
+        p3 = v3.tposition
+        p4 = v4.tposition
 
         p1 = p1.integrated()
         p2 = p2.integrated()
@@ -91,28 +94,38 @@ class Renderer:
         xleft_step, xright_step = dxleft / dy, dxright / dy
 
         xleft, xright = p1.x, p4.x
-        for y in range(p1.y, p3.y):
+        for y in range(p1.y, p2.y):
             for x in range(int(xleft), int(xright)): # +1 ?
-                self.draw_pixel(x, y, z, color)
+                self.draw_pixel(x, y, 0, (100, 100, 100))
             # TODO: Can we do without float?
             xleft += xleft_step
             xright += xright_step
 
-    def draw_fill_triangle(self, p1, p2, p3, color):
-        y_sort = sorted([p1, p2, p3], key=lambda p: p.y)
+    def draw_fill_triangle(self, v1, v2, v3):
+        y_sort = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
         top, middle, bottom = y_sort[0], y_sort[1], y_sort[2]
-        t = (middle.y - top.y) / (bottom.y - top.y)
+        t = (middle.tposition.y - top.tposition.y) / (bottom.tposition.y - top.tposition.y)
 
-        middle_oposit = Point(
-            lerp(top.x, bottom.x, t),
-            middle.y,
-            lerp(top.z, bottom.z, t))
+        # middle_oposit = Point(
+        #     lerp(top.x, bottom.x, t),
+        #     middle.y,
+        #     lerp(top.z, bottom.z, t))
 
-        x_sort = sorted([middle, middle_oposit], key=lambda p: p.x)
+        middle_oposit = Vertex.lerp(top, bottom, t)
+
+        x_sort = sorted([middle, middle_oposit], key=lambda v: v.tposition.x)
         left, right = x_sort[0], x_sort[1]
 
-        self.draw_fill_trapezoid(top, left, right, top, color)
-        self.draw_fill_trapezoid(left, bottom, bottom, right, color)
+        self.draw_fill_trapezoid(top, left, right, top)
+        self.draw_fill_trapezoid(left, bottom, bottom, right)
+
+    def draw_fill_triangle_lerp(self, v1, v2, v3):
+        for i in range(0, 8):
+            vu = Vertex.lerp(v1, v2, i/8)
+            for j in range(0, 8):
+                v = Vertex.lerp(vu, v3, j/8)
+                p = v.tposition
+                self.draw_pixel(p.x, p.y, p.z, (100, 100, 100))
 
     def draw_fill_triangle_check_edge(self, p1, p2, p3, color):
         # Edge Function

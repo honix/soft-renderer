@@ -11,6 +11,7 @@ from mesh import Mesh
 
 def test_persp_render():
     start = time.time_ns()
+    print("Start")
 
     from obj import read_obj
 
@@ -32,13 +33,14 @@ def test_persp_render():
         vertex_project = np.concatenate((vertex.position, [1]))[:,None]
         vertex_transformed = transform_matrix @ vertex_project
         vertex_transformed /= vertex_transformed[3]
-        vertex_unproject = np.asarray(vertex_transformed).flatten()
+        vertex_unproject = np.asarray(vertex_transformed).flatten()[:3]
 
-        return vertex_unproject.view(Point)
+        vertex.tposition = vertex_unproject.view(Point)
 
     print("Transforming points to screen pos..")
 
-    screen_points = list(map(transform, mesh.vertices))
+    for vertex in mesh.vertices:
+        transform(vertex)
 
     print("Rendering..")
 
@@ -46,11 +48,11 @@ def test_persp_render():
     i = 0
     for polygon in mesh.polygons:
         if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
-        points = list(map(lambda x: screen_points[x], polygon.indices))
+        vertices = list(map(lambda x: mesh.vertices[x], polygon.indices))
         renderer.depth_test = True
-        renderer.draw_fill_triangle(*points, polygon.normal * 127 + 127)
+        renderer.draw_fill_triangle_lerp(*vertices)
         renderer.depth_test = False
-        #renderer.draw_wire_triangle(*points, (25, 25, 255))
+        #renderer.draw_wire_triangle(*vertices)
 
         i += 1
         if i % 50 == 0: print(f"{i} polygons drawn")

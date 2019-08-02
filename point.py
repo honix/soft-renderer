@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from utils import lerp
 
 class Point(np.ndarray):
@@ -26,11 +27,11 @@ class Point(np.ndarray):
     @z.setter
     def z(self, v): self[2] = v
 
-    def lerp(self, b, t):
+    def lerp(self, other, t):
         return Point(
-            lerp(self.x, b.x, t),
-            lerp(self.y, b.y, t),
-            lerp(self.z, b.z, t),
+            lerp(self.x, other.x, t),
+            lerp(self.y, other.y, t),
+            lerp(self.z, other.z, t),
         )
 
     def integrated(self):

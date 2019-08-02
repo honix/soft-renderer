@@ -23,6 +23,7 @@ class Mesh:
             )
 
             polygon.normal /= max(polygon.normal.max(), -polygon.normal.min())
+            polygon.normal = polygon.normal.view(Point)
 
     def calculate_vertices_normals(self):
         for vertex in self.vertices:
@@ -34,3 +35,5 @@ class Mesh:
 
         for vertex in self.vertices:
             vertex.normal /= max(vertex.normal.max(), -vertex.normal.min())
+            vertex.normal = vertex.normal.view(Point)
+
