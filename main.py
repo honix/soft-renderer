@@ -15,7 +15,7 @@ def test_persp_render():
 
     from obj import read_obj
 
-    mesh = read_obj('lamp.obj')
+    mesh = read_obj('cube.obj')
 
     renderer = Renderer(1024, 1024)
 
@@ -50,9 +50,10 @@ def test_persp_render():
         if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
         vertices = list(map(lambda x: mesh.vertices[x], polygon.indices))
         renderer.depth_test = True
-        renderer.draw_fill_triangle_lerp(*vertices)
+        renderer.draw_fill_triangle(*vertices, (50, 50, 50))
         renderer.depth_test = False
-        #renderer.draw_wire_triangle(*vertices)
+        renderer.draw_fill_triangle_lerp(*vertices, (200, 160, 100))
+        renderer.draw_wire_triangle(*vertices, (100, 160, 200))
 
         i += 1
         if i % 50 == 0: print(f"{i} polygons drawn")

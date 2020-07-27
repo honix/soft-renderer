@@ -47,6 +47,9 @@ class Renderer:
                 self.draw_pixel(x, y, 0, color)
 
     def draw_line(self, p1, p2, color):
+        p1 = p1.tposition
+        p2 = p2.tposition
+
         # TODO: iterpolate z-value
         z = sum([p1.z, p2.z]) / 2
 
@@ -77,7 +80,7 @@ class Renderer:
         self.draw_line(p2, p3, color)
         self.draw_line(p3, p1, color)
 
-    def draw_fill_trapezoid(self, v1, v2, v3, v4):
+    def draw_fill_trapezoid(self, v1, v2, v3, v4, color):
         p1 = v1.tposition
         p2 = v2.tposition
         p3 = v3.tposition
@@ -96,12 +99,12 @@ class Renderer:
         xleft, xright = p1.x, p4.x
         for y in range(p1.y, p2.y):
             for x in range(int(xleft), int(xright)): # +1 ?
-                self.draw_pixel(x, y, 0, (100, 100, 100))
+                self.draw_pixel(x, y, 0, color)
             # TODO: Can we do without float?
             xleft += xleft_step
             xright += xright_step
 
-    def draw_fill_triangle(self, v1, v2, v3):
+    def draw_fill_triangle(self, v1, v2, v3, color):
         y_sort = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
         top, middle, bottom = y_sort[0], y_sort[1], y_sort[2]
         t = (middle.tposition.y - top.tposition.y) / (bottom.tposition.y - top.tposition.y)
@@ -116,16 +119,16 @@ class Renderer:
         x_sort = sorted([middle, middle_oposit], key=lambda v: v.tposition.x)
         left, right = x_sort[0], x_sort[1]
 
-        self.draw_fill_trapezoid(top, left, right, top)
-        self.draw_fill_trapezoid(left, bottom, bottom, right)
+        self.draw_fill_trapezoid(top, left, right, top, color)
+        self.draw_fill_trapezoid(left, bottom, bottom, right, color)
 
-    def draw_fill_triangle_lerp(self, v1, v2, v3):
+    def draw_fill_triangle_lerp(self, v1, v2, v3, color):
         for i in range(0, 8):
             vu = Vertex.lerp(v1, v2, i/8)
             for j in range(0, 8):
                 v = Vertex.lerp(vu, v3, j/8)
                 p = v.tposition
-                self.draw_pixel(p.x, p.y, p.z, (100, 100, 100))
+                self.draw_pixel(p.x, p.y, p.z, color)
 
     def draw_fill_triangle_check_edge(self, p1, p2, p3, color):
         # Edge Function
