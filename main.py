@@ -15,7 +15,7 @@ def test_persp_render():
 
     from obj import read_obj
 
-    mesh = read_obj('teapot.obj')
+    mesh = read_obj('lamp.obj')
 
     renderer = Renderer(1024, 1024)
 
