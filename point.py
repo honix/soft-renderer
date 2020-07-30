@@ -35,7 +35,7 @@ class Point(np.ndarray):
         )
 
     def integrated(self):
-        return self.astype(np.int).view(Point)
+        return np.floor(self).astype(np.int).view(Point)
 
     def to_list(self):
         return [self.x, self.y, self.z]

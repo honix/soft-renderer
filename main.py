@@ -15,11 +15,17 @@ def test_persp_render():
 
     from obj import read_obj
 
-    mesh = read_obj('cube.obj')
+    #mesh = read_obj('cube.obj') # simples one
+    mesh = read_obj('teapot.obj') # many triangles
+    #mesh = read_obj('lamp.obj') # n-gons
+    #mesh = read_obj('cessna.obj') # doesnt work..
 
+    #renderer = Renderer(512, 512)
     renderer = Renderer(1024, 1024)
 
     camera_position = Point(3, 2, 5)
+
+    print("Transforming points to screen pos..")
 
     # TODO: split camera/world transform and object transform
     transform_matrix = (
@@ -37,8 +43,6 @@ def test_persp_render():
 
         vertex.tposition = vertex_unproject.view(Point)
 
-    print("Transforming points to screen pos..")
-
     for vertex in mesh.vertices:
         transform(vertex)
 
@@ -50,10 +54,14 @@ def test_persp_render():
         if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
         vertices = list(map(lambda x: mesh.vertices[x], polygon.indices))
         renderer.depth_test = True
-        renderer.draw_fill_triangle(*vertices, (50, 50, 50))
+        #renderer.draw_fill_triangle(*vertices, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+        #renderer.draw_fill_triangle(*vertices, (150, 50, 50))
+        renderer.draw_fill_triangle(*vertices, ((polygon.normal.x + 1) / 2 * 255, (polygon.normal.y + 1) / 2 * 255, (polygon.normal.z + 1) / 2 * 255))
+        #z = (vertices[0].tposition.z - 0.25) * 255 * 2
+        #renderer.draw_fill_triangle(*vertices, (z, z, z))
         renderer.depth_test = False
-        renderer.draw_fill_triangle_lerp(*vertices, (200, 160, 100))
-        renderer.draw_wire_triangle(*vertices, (100, 160, 200))
+        #renderer.draw_fill_triangle_lerp(*vertices, (200, 160, 100))
+        #renderer.draw_wire_triangle(*vertices, (100, 160, 200))
 
         i += 1
         if i % 50 == 0: print(f"{i} polygons drawn")

@@ -2,6 +2,7 @@ from buffer import Buffer
 from point import Point
 from vertex import Vertex
 from utils import lerp
+from math import floor
 
 import numpy as np
 
@@ -80,47 +81,71 @@ class Renderer:
         self.draw_line(p2, p3, color)
         self.draw_line(p3, p1, color)
 
-    def draw_fill_trapezoid(self, v1, v2, v3, v4, color):
+    def draw_fill_trapezoid(self, v1, v2, v3, v4, look_up, color):
         p1 = v1.tposition
         p2 = v2.tposition
         p3 = v3.tposition
         p4 = v4.tposition
 
-        p1 = p1.integrated()
+        # Copy z values or they will turn in to 0
+        z1 = p1.z
+        z2 = p2.z
+        z3 = p3.z
+        z4 = p4.z
+
+        p1 = p1.integrated() # TODO: maybe foor() just before draw?
         p2 = p2.integrated()
         p3 = p3.integrated()
         p4 = p4.integrated()
 
+        if look_up:
+            z_anchor_x = p3.x
+            z_anchor_z = z3
+            z_base_x = p2.x
+        else:
+            z_anchor_x = p4.x
+            z_anchor_z = z4
+            z_base_x = p1.x
+
         dy = p2.y - p1.y
-        if dy == 0: return # TODO: ? or vert line
+        if dy == 0: return
+
         dxleft, dxright = p2.x - p1.x, p3.x - p4.x
         xleft_step, xright_step = dxleft / dy, dxright / dy
 
+        dzleft = z2 - z1
+        zleft_step = dzleft / dy
+
+        base_dx = z_anchor_x - z_base_x
+
         xleft, xright = p1.x, p4.x
-        for y in range(p1.y, p2.y):
-            for x in range(int(xleft), int(xright)): # +1 ?
-                self.draw_pixel(x, y, 0, color)
+        zleft = z1
+        for y in range(p1.y, p2.y + 1):
+            dz = z_anchor_z - zleft
+            z_step = dz / base_dx if base_dx > 0 else 0
+            z = zleft
+            for x in range(floor(xleft), floor(xright) + 1):
+                self.draw_pixel(x, y, z, color)
+                #self.draw_pixel(x, y, z, z * 255)
+                z += z_step
+                #from random import random
+                #self.draw_pixel(x, y, random(), color)
             # TODO: Can we do without float?
             xleft += xleft_step
             xright += xright_step
+            zleft += zleft_step
 
     def draw_fill_triangle(self, v1, v2, v3, color):
-        y_sort = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
-        top, middle, bottom = y_sort[0], y_sort[1], y_sort[2]
-        t = (middle.tposition.y - top.tposition.y) / (bottom.tposition.y - top.tposition.y)
+        [top, middle, bottom] = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
 
-        # middle_oposit = Point(
-        #     lerp(top.x, bottom.x, t),
-        #     middle.y,
-        #     lerp(top.z, bottom.z, t))
+        t = (top.tposition.y - middle.tposition.y) / (top.tposition.y - bottom.tposition.y)
 
         middle_oposit = Vertex.lerp(top, bottom, t)
 
-        x_sort = sorted([middle, middle_oposit], key=lambda v: v.tposition.x)
-        left, right = x_sort[0], x_sort[1]
+        [left, right] = sorted([middle, middle_oposit], key=lambda v: v.tposition.x)
 
-        self.draw_fill_trapezoid(top, left, right, top, color)
-        self.draw_fill_trapezoid(left, bottom, bottom, right, color)
+        self.draw_fill_trapezoid(top, left, right, top, True, color)
+        self.draw_fill_trapezoid(left, bottom, bottom, right, False, color)
 
     def draw_fill_triangle_lerp(self, v1, v2, v3, color):
         for i in range(0, 8):
