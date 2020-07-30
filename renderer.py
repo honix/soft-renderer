@@ -110,23 +110,25 @@ class Renderer:
         dy = p2.y - p1.y
         if dy == 0: return
 
+        dx = z_anchor_x - z_base_x
+        if dx == 0: return
+
         dxleft, dxright = p2.x - p1.x, p3.x - p4.x
         xleft_step, xright_step = dxleft / dy, dxright / dy
 
         dzleft = z2 - z1
         zleft_step = dzleft / dy
 
-        base_dx = z_anchor_x - z_base_x
-
         xleft, xright = p1.x, p4.x
         zleft = z1
         for y in range(p1.y, p2.y + 1):
             dz = z_anchor_z - zleft
-            z_step = dz / base_dx if base_dx > 0 else 0
+            z_step = dz / dx
             z = zleft
             for x in range(floor(xleft), floor(xright) + 1):
-                self.draw_pixel(x, y, z, color)
-                #self.draw_pixel(x, y, z, z * 255)
+                #self.draw_pixel(x, y, z, color)
+                #self.draw_pixel(x, y, z1, color) # dont interpolate, use one z
+                self.draw_pixel(x, y, z, z * 255 * 12) # draw z
                 z += z_step
                 #from random import random
                 #self.draw_pixel(x, y, random(), color)

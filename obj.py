@@ -26,9 +26,9 @@ def read_obj(path):
                 length = len(indices)
 
                 def add_polygon(a, b, c):
-                    p1 = int(indices[a]) - 1
-                    p2 = int(indices[b]) - 1
-                    p3 = int(indices[c]) - 1
+                    p1 = int(indices[a].split('/')[0]) - 1
+                    p2 = int(indices[b].split('/')[0]) - 1
+                    p3 = int(indices[c].split('/')[0]) - 1
                     polygons.append(Polygon([p1, p2, p3]))
 
                 # TODO: algoritmize

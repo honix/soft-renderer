@@ -15,15 +15,16 @@ def test_persp_render():
 
     from obj import read_obj
 
+    mesh = read_obj('polygons.obj') # some flat polys
     #mesh = read_obj('cube.obj') # simples one
-    mesh = read_obj('teapot.obj') # many triangles
+    #mesh = read_obj('teapot.obj') # many triangles
     #mesh = read_obj('lamp.obj') # n-gons
     #mesh = read_obj('cessna.obj') # doesnt work..
 
     #renderer = Renderer(512, 512)
     renderer = Renderer(1024, 1024)
 
-    camera_position = Point(3, 2, 5)
+    camera_position = Point(0, 0, 5)
 
     print("Transforming points to screen pos..")
 
@@ -31,7 +32,7 @@ def test_persp_render():
     transform_matrix = (
         matrices.screen(renderer.width, renderer.height) *
         matrices.frustrum() *
-        matrices.rotate_y(-1/6 * math.pi) *
+        #matrices.rotate_y(-1/6 * math.pi) *
         matrices.transpose(*-camera_position)
     )
 
