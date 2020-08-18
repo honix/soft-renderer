@@ -81,7 +81,7 @@ class Renderer:
         self.draw_line(p2, p3, color)
         self.draw_line(p3, p1, color)
 
-    def draw_fill_trapezoid(self, v1, v2, v3, v4, look_up, color):
+    def draw_fill_trapezoid(self, v1, v2, v3, v4, color):
         p1 = v1.tposition
         p2 = v2.tposition
         p3 = v3.tposition
@@ -98,37 +98,44 @@ class Renderer:
         p3 = p3.integrated()
         p4 = p4.integrated()
 
-        if look_up:
-            z_anchor_x = p3.x
-            z_anchor_z = z3
-            z_base_x = p2.x
-        else:
-            z_anchor_x = p4.x
-            z_anchor_z = z4
-            z_base_x = p1.x
+        #if look_up:
+        #    z_anchor_x = p3.x
+        #    z_anchor_z = z3
+        #    z_base_x = p2.x
+        #else:
+        #    z_anchor_x = p4.x
+        #    z_anchor_z = z4
+        #    z_base_x = p1.x
 
         dy = p2.y - p1.y
         if dy == 0: return
 
-        dx = z_anchor_x - z_base_x
-        if dx == 0: return
+        #dx = z_anchor_x - z_base_x
+        #if dx == 0: return
 
         dxleft, dxright = p2.x - p1.x, p3.x - p4.x
         xleft_step, xright_step = dxleft / dy, dxright / dy
 
         dzleft = z2 - z1
         zleft_step = dzleft / dy
+        dzright = z3 - z4
+        zright_step = dzright / dy
 
         xleft, xright = p1.x, p4.x
         zleft = z1
+        zright = z4
         for y in range(p1.y, p2.y + 1):
-            dz = z_anchor_z - zleft
-            z_step = dz / dx
+            dz = zright - zleft
+            dx = xright - xleft
+            if dx == 0: 
+                z_step = 0
+            else:
+                z_step = dz / dx
             z = zleft
             for x in range(floor(xleft), floor(xright) + 1):
                 #self.draw_pixel(x, y, z, color)
                 #self.draw_pixel(x, y, z1, color) # dont interpolate, use one z
-                self.draw_pixel(x, y, z, z * 255 * 12) # draw z
+                self.draw_pixel(x, y, z, z * 255 * 1) # draw z
                 z += z_step
                 #from random import random
                 #self.draw_pixel(x, y, random(), color)
@@ -136,6 +143,7 @@ class Renderer:
             xleft += xleft_step
             xright += xright_step
             zleft += zleft_step
+            zright += zright_step
 
     def draw_fill_triangle(self, v1, v2, v3, color):
         [top, middle, bottom] = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
@@ -146,8 +154,8 @@ class Renderer:
 
         [left, right] = sorted([middle, middle_oposit], key=lambda v: v.tposition.x)
 
-        self.draw_fill_trapezoid(top, left, right, top, True, color)
-        self.draw_fill_trapezoid(left, bottom, bottom, right, False, color)
+        self.draw_fill_trapezoid(top, left, right, top, color)
+        self.draw_fill_trapezoid(left, bottom, bottom, right, color)
 
     def draw_fill_triangle_lerp(self, v1, v2, v3, color):
         for i in range(0, 8):

@@ -15,10 +15,10 @@ def test_persp_render():
 
     from obj import read_obj
 
-    mesh = read_obj('polygons.obj') # some flat polys
+    #mesh = read_obj('polygons.obj') # some flat polys
     #mesh = read_obj('cube.obj') # simples one
     #mesh = read_obj('teapot.obj') # many triangles
-    #mesh = read_obj('lamp.obj') # n-gons
+    mesh = read_obj('lamp.obj') # n-gons
     #mesh = read_obj('cessna.obj') # doesnt work..
 
     #renderer = Renderer(512, 512)
