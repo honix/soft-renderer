@@ -17,12 +17,13 @@ def test_persp_render():
 
     #mesh = read_obj('polygons.obj') # some flat polys
     #mesh = read_obj('cube.obj') # simples one
-    #mesh = read_obj('teapot.obj') # many triangles
-    mesh = read_obj('lamp.obj') # n-gons
+    mesh = read_obj('teapot.obj') # many triangles
+    #mesh = read_obj('lamp.obj') # n-gons
     #mesh = read_obj('cessna.obj') # doesnt work..
 
     #renderer = Renderer(512, 512)
-    renderer = Renderer(1024, 1024)
+    #renderer = Renderer(1024, 1024)
+    renderer = Renderer(2048, 2048)
 
     camera_position = Point(0, 0, 5)
 

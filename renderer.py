@@ -87,17 +87,6 @@ class Renderer:
         p3 = v3.tposition
         p4 = v4.tposition
 
-        # Copy z values or they will turn in to 0
-        z1 = p1.z
-        z2 = p2.z
-        z3 = p3.z
-        z4 = p4.z
-
-        p1 = p1.integrated() # TODO: maybe foor() just before draw?
-        p2 = p2.integrated()
-        p3 = p3.integrated()
-        p4 = p4.integrated()
-
         #if look_up:
         #    z_anchor_x = p3.x
         #    z_anchor_z = z3
@@ -116,15 +105,12 @@ class Renderer:
         dxleft, dxright = p2.x - p1.x, p3.x - p4.x
         xleft_step, xright_step = dxleft / dy, dxright / dy
 
-        dzleft = z2 - z1
-        zleft_step = dzleft / dy
-        dzright = z3 - z4
-        zright_step = dzright / dy
+        dzleft, dzright = p2.z - p1.z, p3.z - p4.z
+        zleft_step, zright_step = dzleft / dy, dzright / dy
 
         xleft, xright = p1.x, p4.x
-        zleft = z1
-        zright = z4
-        for y in range(p1.y, p2.y + 1):
+        zleft, zright = p1.z, p4.z
+        for y in range(floor(p1.y), floor(p2.y)):
             dz = zright - zleft
             dx = xright - xleft
             if dx == 0: 
@@ -132,14 +118,18 @@ class Renderer:
             else:
                 z_step = dz / dx
             z = zleft
-            for x in range(floor(xleft), floor(xright) + 1):
-                #self.draw_pixel(x, y, z, color)
-                #self.draw_pixel(x, y, z1, color) # dont interpolate, use one z
-                self.draw_pixel(x, y, z, z * 255 * 1) # draw z
+            for x in range(floor(xleft), floor(xright)):
+                if x == floor(xleft) and y == floor(p1.y):
+                    self.draw_pixel(x, y, z, (0, 255, 0))
+                elif x == floor(xleft):
+                    self.draw_pixel(x, y, z, (255, 0, 0))
+                elif x == floor(xright) - 1:
+                    self.draw_pixel(x, y, z, (0, 0, 255))
+                else:
+                    self.draw_pixel(x, y, z, z * 255 * 1) # draw z
+                    #self.draw_pixel(x, y, z, color)
                 z += z_step
-                #from random import random
-                #self.draw_pixel(x, y, random(), color)
-            # TODO: Can we do without float?
+            # TODO: Can we do without float? nope
             xleft += xleft_step
             xright += xright_step
             zleft += zleft_step
