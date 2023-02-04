@@ -1,4 +1,4 @@
 ### Run
 ```
-pip install numpy pillow
+pip install numpy==1.23.5 pillow
 ```
