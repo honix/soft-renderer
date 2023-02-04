@@ -2,7 +2,7 @@ from buffer import Buffer
 from point import Point
 from vertex import Vertex
 from utils import lerp
-from math import floor
+from math import floor, ceil
 
 import numpy as np
 
@@ -110,7 +110,7 @@ class Renderer:
 
         xleft, xright = p1.x, p4.x
         zleft, zright = p1.z, p4.z
-        for y in range(floor(p1.y), floor(p2.y)):
+        for y in range(round(p1.y), round(p2.y)):
             dz = zright - zleft
             dx = xright - xleft
             if dx == 0: 
@@ -118,16 +118,19 @@ class Renderer:
             else:
                 z_step = dz / dx
             z = zleft
-            for x in range(floor(xleft), floor(xright)):
-                if x == floor(xleft) and y == floor(p1.y):
-                    self.draw_pixel(x, y, z, (0, 255, 0))
-                elif x == floor(xleft):
-                    self.draw_pixel(x, y, z, (255, 0, 0))
-                elif x == floor(xright) - 1:
-                    self.draw_pixel(x, y, z, (0, 0, 255))
-                else:
-                    self.draw_pixel(x, y, z, z * 255 * 1) # draw z
-                    #self.draw_pixel(x, y, z, color)
+            # for x in range(floor(xleft), floor(xright)):
+            #     if x == floor(xleft) and y == floor(p1.y):
+            #         self.draw_pixel(x, y, z, (0, 255, 0))
+            #     elif x == floor(xleft):
+            #         self.draw_pixel(x, y, z, (255, 0, 0))
+            #     elif x == floor(xright) - 1:
+            #         self.draw_pixel(x, y, z, (0, 0, 255))
+            #     else:
+            #         self.draw_pixel(x, y, z, z * 255 * 1) # draw z
+            #         #self.draw_pixel(x, y, z, color)
+            #     z += z_step
+            for x in range(round(xleft), round(xright)):
+                self.draw_pixel(x, y, z, color)
                 z += z_step
             # TODO: Can we do without float? nope
             xleft += xleft_step
@@ -158,20 +161,18 @@ class Renderer:
     def draw_fill_triangle_check_edge(self, p1, p2, p3, color):
         # Edge Function
         def edge(a, b, x, y):
-            return (x - a.x) * (b.y - a.y) - (y - a.y) * (b.x - a.x) >= 0
+            return (x - a.tposition.x) * (b.tposition.y - a.tposition.y) - (y - a.tposition.y) * (b.tposition.x - a.tposition.x) >= 0
 
         # TODO: try span method https://www.joshbeam.com/articles/triangle_rasterization/
-        minx = min(p1.x, p2.x, p3.x)
-        miny = min(p1.y, p2.y, p3.y)
-        maxx = max(p1.x, p2.x, p3.x)
-        maxy = max(p1.y, p2.y, p3.y)
+        minx = min(p1.tposition.x, p2.tposition.x, p3.tposition.x)
+        miny = min(p1.tposition.y, p2.tposition.y, p3.tposition.y)
+        maxx = max(p1.tposition.x, p2.tposition.x, p3.tposition.x)
+        maxy = max(p1.tposition.y, p2.tposition.y, p3.tposition.y)
         # TODO: iterpolate z-value
-        z = sum([p1.z, p2.z, p3.z]) / 3
+        z = sum([p1.tposition.z, p2.tposition.z, p3.tposition.z]) / 3
 
-        for cx in range(int(maxx - minx)):
-            for cy in range(int(maxy - miny)):
-                x = cx + minx
-                y = cy + miny
+        for x in range(floor(minx), floor(maxx)):
+            for y in range(floor(miny), floor(maxy)):
                 inside = True
                 inside &= edge(p1, p2, x, y)
                 inside &= edge(p2, p3, x, y)

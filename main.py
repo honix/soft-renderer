@@ -21,11 +21,11 @@ def test_persp_render():
     #mesh = read_obj('lamp.obj') # n-gons
     #mesh = read_obj('cessna.obj') # doesnt work..
 
-    #renderer = Renderer(512, 512)
+    renderer = Renderer(512, 512)
     #renderer = Renderer(1024, 1024)
-    renderer = Renderer(2048, 2048)
+    #renderer = Renderer(2048, 2048)
 
-    camera_position = Point(0, 0, 5)
+    camera_position = Point(0, 2, 5)
 
     print("Transforming points to screen pos..")
 
@@ -59,6 +59,7 @@ def test_persp_render():
         #renderer.draw_fill_triangle(*vertices, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
         #renderer.draw_fill_triangle(*vertices, (150, 50, 50))
         renderer.draw_fill_triangle(*vertices, ((polygon.normal.x + 1) / 2 * 255, (polygon.normal.y + 1) / 2 * 255, (polygon.normal.z + 1) / 2 * 255))
+        #renderer.draw_fill_triangle_check_edge(*vertices, ((polygon.normal.x + 1) / 2 * 255, (polygon.normal.y + 1) / 2 * 255, (polygon.normal.z + 1) / 2 * 255))
         #z = (vertices[0].tposition.z - 0.25) * 255 * 2
         #renderer.draw_fill_triangle(*vertices, (z, z, z))
         renderer.depth_test = False
