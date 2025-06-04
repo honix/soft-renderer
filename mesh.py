@@ -27,7 +27,7 @@ class Mesh:
 
     def calculate_vertices_normals(self):
         for vertex in self.vertices:
-            vertex.normal = np.array([0, 0, 0], dtype=np.float)
+            vertex.normal = np.array([0, 0, 0], dtype=float)
 
         for polygon in self.polygons:
             for index in polygon.indices:

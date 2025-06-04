@@ -1,3 +1,4 @@
+import math
 from buffer import Buffer
 from point import Point
 from vertex import Vertex
@@ -12,7 +13,7 @@ class Renderer:
         self.height = height
         self.depth_test = depth_test
         self.color_buffer = Buffer(width, height, channels=3)
-        self.depth_buffer = Buffer(width, height, channels=1, fill_value=1, dtype=np.float)
+        self.depth_buffer = Buffer(width, height, channels=1, fill_value=1, dtype=float)
     
     def show(self):
         self.color_buffer.show()
