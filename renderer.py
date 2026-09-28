@@ -81,74 +81,54 @@ class Renderer:
         self.draw_line(p2, p3, color)
         self.draw_line(p3, p1, color)
 
-    def draw_fill_trapezoid(self, v1, v2, v3, v4, color):
+    def draw_fill_trapezoid(self, v1, v2, v3, v4, color, y_top=None, y_bottom=None):
+        # Left edge is v1 -> v2, right edge is v4 -> v3 (both going down).
+        # Rows between y_top and y_bottom are filled, by default the span
+        # where both edges exist.
         p1 = v1.tposition
         p2 = v2.tposition
         p3 = v3.tposition
         p4 = v4.tposition
 
-        #if look_up:
-        #    z_anchor_x = p3.x
-        #    z_anchor_z = z3
-        #    z_base_x = p2.x
-        #else:
-        #    z_anchor_x = p4.x
-        #    z_anchor_z = z4
-        #    z_base_x = p1.x
+        if y_top is None: y_top = max(p1.y, p4.y)
+        if y_bottom is None: y_bottom = min(p2.y, p3.y)
 
-        dy = p2.y - p1.y
-        if dy == 0: return
+        # Sample coverage at pixel centers (x + 0.5, y + 0.5) with a top-left
+        # fill rule: a pixel is drawn if its center is in [top, bottom) and
+        # [left, right). Two triangles sharing an edge then compute the exact
+        # same edge position, so every pixel goes to exactly one of them:
+        # no holes and no double drawing.
+        for y in range(ceil(y_top - 0.5), ceil(y_bottom - 0.5)):
+            yc = y + 0.5
+            xleft, zleft = edge_at(p1, p2, yc)
+            xright, zright = edge_at(p4, p3, yc)
 
-        #dx = z_anchor_x - z_base_x
-        #if dx == 0: return
-
-        dxleft, dxright = p2.x - p1.x, p3.x - p4.x
-        xleft_step, xright_step = dxleft / dy, dxright / dy
-
-        dzleft, dzright = p2.z - p1.z, p3.z - p4.z
-        zleft_step, zright_step = dzleft / dy, dzright / dy
-
-        xleft, xright = p1.x, p4.x
-        zleft, zright = p1.z, p4.z
-        for y in range(round(p1.y), round(p2.y)):
-            dz = zright - zleft
             dx = xright - xleft
-            if dx == 0: 
-                z_step = 0
-            else:
-                z_step = dz / dx
-            z = zleft
-            # for x in range(floor(xleft), floor(xright)):
-            #     if x == floor(xleft) and y == floor(p1.y):
-            #         self.draw_pixel(x, y, z, (0, 255, 0))
-            #     elif x == floor(xleft):
-            #         self.draw_pixel(x, y, z, (255, 0, 0))
-            #     elif x == floor(xright) - 1:
-            #         self.draw_pixel(x, y, z, (0, 0, 255))
-            #     else:
-            #         self.draw_pixel(x, y, z, z * 255 * 1) # draw z
-            #         #self.draw_pixel(x, y, z, color)
-            #     z += z_step
-            for x in range(round(xleft), round(xright)):
+            z_step = (zright - zleft) / dx if dx > 0 else 0
+
+            x_start = ceil(xleft - 0.5)
+            # Depth is sampled at the pixel center too, not at the edge
+            z = zleft + (x_start + 0.5 - xleft) * z_step
+            for x in range(x_start, ceil(xright - 0.5)):
                 self.draw_pixel(x, y, z, color)
                 z += z_step
-            # TODO: Can we do without float? nope
-            xleft += xleft_step
-            xright += xright_step
-            zleft += zleft_step
-            zright += zright_step
 
     def draw_fill_triangle(self, v1, v2, v3, color):
         [top, middle, bottom] = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
+        t, m, b = top.tposition, middle.tposition, bottom.tposition
 
-        t = (top.tposition.y - middle.tposition.y) / (top.tposition.y - bottom.tposition.y)
+        # Which side of the long edge (top -> bottom) the middle vertex is on
+        cross = (m.x - t.x) * (b.y - t.y) - (m.y - t.y) * (b.x - t.x)
+        if cross == 0: return  # degenerate, zero area
 
-        middle_oposit = Vertex.lerp(top, bottom, t)
-
-        [left, right] = sorted([middle, middle_oposit], key=lambda v: v.tposition.x)
-
-        self.draw_fill_trapezoid(top, left, right, top, color)
-        self.draw_fill_trapezoid(left, bottom, bottom, right, color)
+        # Always pass the real edge endpoints (never a lerped split point),
+        # so a shared edge is evaluated identically by both triangles
+        if cross < 0:  # middle is on the left
+            self.draw_fill_trapezoid(top, middle, bottom, top, color, t.y, m.y)
+            self.draw_fill_trapezoid(middle, bottom, bottom, top, color, m.y, b.y)
+        else:
+            self.draw_fill_trapezoid(top, bottom, middle, top, color, t.y, m.y)
+            self.draw_fill_trapezoid(top, bottom, bottom, middle, color, m.y, b.y)
 
     def draw_fill_triangle_lerp(self, v1, v2, v3, color):
         for i in range(0, 8):
@@ -179,3 +159,11 @@ class Renderer:
                 inside &= edge(p3, p1, x, y)
                 if inside:
                     self.draw_pixel(x, y, z, color)
+
+
+def edge_at(a, b, y):
+    # X and Z of the edge a -> b at height y. Always computed from the edge's
+    # own endpoints with the same formula, so it is bit-identical for every
+    # triangle that shares this edge.
+    t = (y - a.y) / (b.y - a.y)
+    return lerp(a.x, b.x, t), lerp(a.z, b.z, t)
