@@ -9,7 +9,7 @@ python main.py [normals|flat|gouraud|phong] [--mesh teapot.obj] [--size 512] [--
 ```
 Without `--out` the image opens in a window.
 
-`--aa N` renders at N times the resolution and averages down (supersampling). Edges get smooth, but render time grows as N².
+`--aa N` renders at N times the resolution and averages down (supersampling). Edges get smooth, but render time grows as N². Sample images below use `--size 512 --aa 3`, cropped.
 
 | Flat | Blinn-Phong | Normals |
 |:---:|:---:|:---:|
