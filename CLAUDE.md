@@ -4,19 +4,23 @@ Software renderer in Python. No GPU, no OpenGL; everything is rasterized in nump
 
 - Needs `numpy==1.23.5` (code uses `np.float` / `np.int`, removed in newer numpy).
 - Run: `python main.py phong --out out.png` (see README for options).
-- Test: `python test_watertight.py` must print `ok` after any rasterizer change.
+- Test: `python -m tests.test_watertight` (from the repo root) must print `ok` after any rasterizer change.
 
 ## Layout
-- `renderer.py`: buffers, lines, triangle fill. `triangle_pixels()` decides coverage
-  (top-left rule, no cracks or double draws); `draw_triangle()` runs a shader on top of it.
-- `shaders.py`: `Shader` base (`vertex` / `fragment` stages, instance attributes act as
-  uniforms). Flat, Gouraud, Blinn-Phong all share `LitShader.light()`.
-- `mesh.py`, `obj.py`, `vertex.py`, `polygon.py`: geometry. Normals are unit length,
-  and vertices at the same position share a smooth normal.
-- `main.py`: camera, projection, per-mesh draw loop, CLI.
+- `main.py`: CLI and per-mesh draw loop (`render_mesh`). Bare `--mesh` names resolve in `assets/models/`.
+- `softrender/`: the package.
+  - `raster/renderer.py`: lines, triangle fill. `triangle_pixels()` decides coverage
+    (top-left rule, no cracks or double draws); `draw_triangle()` runs a shader on top of it.
+    `raster/buffer.py`: color/depth buffers.
+  - `shaders.py`: `Shader` base (`vertex` / `fragment` stages, instance attributes act as
+    uniforms). Flat, Gouraud, Blinn-Phong all share `LitShader.light()`.
+  - `camera.py`: view/projection matrix and `project()`, which sets `vertex.tposition` and `vertex.w`.
+  - `geometry/`: `point`, `matrices`, `vertex`, `polygon`, `mesh`, `obj`. Normals are unit length,
+    and vertices at the same position share a smooth normal.
+- `assets/models/`: .obj meshes. `docs/images/`: README screenshots. `tests/`: run with `python -m tests.<name>`.
 
 ## Conventions
 - Screen y points down; the camera looks down -z. Everything shading-related is in world space.
 - Fragment colors are floats in 0..1; the renderer converts to 0..255.
-- Perspective-correct interpolation needs `vertex.w`, set in `main.py` when projecting.
+- Perspective-correct interpolation needs `vertex.w`, set in `camera.project()`.
 - Keep code plain and small, match the existing style.

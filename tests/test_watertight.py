@@ -3,9 +3,9 @@
 import random
 import numpy as np
 
-from renderer import Renderer
-from vertex import Vertex
-from point import Point
+from softrender.raster.renderer import Renderer
+from softrender.geometry.vertex import Vertex
+from softrender.geometry.point import Point
 
 def test_watertight(seed, snap=False, size=256, cells=9):
     random.seed(seed)

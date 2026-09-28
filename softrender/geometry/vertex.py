@@ -1,4 +1,4 @@
-from point import Point
+from .point import Point
 
 class Vertex:
     def __init__(self, position, normal=None):
