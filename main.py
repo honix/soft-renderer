@@ -1,22 +1,26 @@
 import argparse
+import os
 import time
 
 import numpy as np
 
-import matrices
-from renderer import Renderer
-from point import Point
-from shaders import SHADERS
+from softrender.camera import project, view_projection
+from softrender.geometry.obj import read_obj
+from softrender.geometry.point import Point
+from softrender.raster.renderer import Renderer
+from softrender.shaders import SHADERS
+
+MODELS_DIR = os.path.join(os.path.dirname(__file__), 'assets', 'models')
 
 
-def test_persp_render(mesh_path, shader_name, size, out):
+def render_mesh(mesh_path, shader_name, size, out):
     start = time.time_ns()
     print("Start")
 
-    from obj import read_obj
-
     # polygons.obj - some flat polys, cube.obj - simplest one,
     # teapot.obj - many triangles, lamp.obj - n-gons, cessna.obj - doesnt work..
+    if not os.path.exists(mesh_path):
+        mesh_path = os.path.join(MODELS_DIR, mesh_path)
     mesh = read_obj(mesh_path)
 
     renderer = Renderer(size, size)
@@ -26,29 +30,12 @@ def test_persp_render(mesh_path, shader_name, size, out):
 
     print("Transforming points to screen pos..")
 
-    # TODO: split camera/world transform and object transform
-    transform_matrix = (
-        matrices.screen(renderer.width, renderer.height) *
-        matrices.frustrum() *
-        #matrices.rotate_y(-1/6 * math.pi) *
-        matrices.transpose(*-camera_position)
-    )
-
-    def transform(vertex):
-        vertex_project = np.concatenate((vertex.position, [1]))[:,None]
-        vertex_transformed = transform_matrix @ vertex_project
-        vertex.w = float(vertex_transformed[3])
-        vertex_transformed /= vertex_transformed[3]
-        vertex_unproject = np.asarray(vertex_transformed).flatten()[:3]
-
-        vertex.tposition = vertex_unproject.view(Point)
-
+    transform_matrix = view_projection(camera_position, renderer.width, renderer.height)
     for vertex in mesh.vertices:
-        transform(vertex)
+        project(vertex, transform_matrix)
 
     print("Rendering..")
 
-    # TODO: move those routines to mesh renderer class (?)
     i = 0
     for polygon in mesh.polygons:
         if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
@@ -70,11 +57,11 @@ def test_persp_render(mesh_path, shader_name, size, out):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('shader', nargs='?', default='phong', choices=SHADERS)
-    parser.add_argument('--mesh', default='teapot.obj')
+    parser.add_argument('--mesh', default='teapot.obj', help='path, or a file name in assets/models')
     parser.add_argument('--size', type=int, default=512)
     parser.add_argument('--out', help='save to a png instead of opening a window')
     args = parser.parse_args()
-    test_persp_render(args.mesh, args.shader, args.size, args.out)
+    render_mesh(args.mesh, args.shader, args.size, args.out)
 
 
 # Perspective projection

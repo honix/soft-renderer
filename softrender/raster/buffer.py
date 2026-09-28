@@ -1,7 +1,7 @@
 from PIL import Image
 import numpy as np
 
-from point import Point
+from ..geometry.point import Point
 
 class Buffer:
     def __init__(self, width, height, channels, fill_value=0, dtype=np.uint8):

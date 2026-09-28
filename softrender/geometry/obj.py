@@ -1,7 +1,7 @@
-from mesh import Mesh
-from point import Point
-from vertex import Vertex
-from polygon import Polygon
+from .mesh import Mesh
+from .point import Point
+from .vertex import Vertex
+from .polygon import Polygon
 
 def read_obj(path):
     vertices = []

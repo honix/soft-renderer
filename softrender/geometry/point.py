@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from utils import lerp
+from ..utils import lerp
 
 class Point(np.ndarray):
     def __new__(cls, x=0, y=0, z=0):

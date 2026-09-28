@@ -1,7 +1,7 @@
-from buffer import Buffer
-from point import Point
-from vertex import Vertex
-from utils import lerp
+from .buffer import Buffer
+from ..geometry.point import Point
+from ..geometry.vertex import Vertex
+from ..utils import lerp
 from math import floor, ceil
 
 import numpy as np

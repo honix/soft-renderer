@@ -1,5 +1,5 @@
-from renderer import Renderer
-from point import Point
+from softrender.raster.renderer import Renderer
+from softrender.geometry.point import Point
 
 def test_2d_render():
     color_buffer = Renderer(512, 512)
