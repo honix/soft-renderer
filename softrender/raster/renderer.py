@@ -7,18 +7,23 @@ from math import floor, ceil
 import numpy as np
 
 class Renderer:
-    def __init__(self, width, height, depth_test=True):
+    def __init__(self, width, height, depth_test=True, aa=1):
+        # width/height are the sample resolution; the output is downsampled by aa.
         self.width = width
         self.height = height
+        self.aa = aa
         self.depth_test = depth_test
         self.color_buffer = Buffer(width, height, channels=3)
         self.depth_buffer = Buffer(width, height, channels=1, fill_value=1, dtype=np.float)
     
+    def resolve(self):
+        return self.color_buffer.downsample(self.aa) if self.aa > 1 else self.color_buffer
+
     def show(self):
-        self.color_buffer.show()
+        self.resolve().show()
 
     def save(self, path):
-        self.color_buffer.save(path)
+        self.resolve().save(path)
 
     def draw_pixel(self, x, y, z, color):
         x = int(x)
