@@ -5,9 +5,11 @@ A tiny software 3D renderer in Python (numpy + Pillow), with game-style shaders.
 ### Run
 ```
 pip install -r requirements.txt
-python main.py [normals|flat|gouraud|phong] [--mesh teapot.obj] [--size 512] [--out image.png]
+python main.py [normals|flat|gouraud|phong] [--mesh teapot.obj] [--size 512] [--aa 2] [--out image.png]
 ```
 Without `--out` the image opens in a window.
+
+`--aa N` renders at N times the resolution and averages down (supersampling). Edges get smooth, but render time grows as N². Sample images below use `--size 512 --aa 3`, cropped.
 
 | Flat | Blinn-Phong | Normals |
 |:---:|:---:|:---:|

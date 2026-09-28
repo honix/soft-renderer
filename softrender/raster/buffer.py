@@ -19,6 +19,14 @@ class Buffer:
     def __getitem__(self, key):
         return self.data[key]
 
+    def downsample(self, n):
+        # Box filter: average each n x n block of samples into one pixel.
+        h, w = self.height // n, self.width // n
+        data = self.data.reshape(h, n, w, n, -1).mean(axis=(1, 3))
+        buf = Buffer(w, h, channels=data.shape[-1])
+        buf.data[:] = np.round(data).astype(np.uint8)
+        return buf
+
     def show(self, mode='RGB'):
         img = Image.fromarray(self.data, mode)
         img.show()

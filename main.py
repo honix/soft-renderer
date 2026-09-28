@@ -13,7 +13,7 @@ from softrender.shaders import SHADERS
 MODELS_DIR = os.path.join(os.path.dirname(__file__), 'assets', 'models')
 
 
-def render_mesh(mesh_path, shader_name, size, out):
+def render_mesh(mesh_path, shader_name, size, out, aa=1):
     start = time.time_ns()
     print("Start")
 
@@ -23,7 +23,7 @@ def render_mesh(mesh_path, shader_name, size, out):
         mesh_path = os.path.join(MODELS_DIR, mesh_path)
     mesh = read_obj(mesh_path)
 
-    renderer = Renderer(size, size)
+    renderer = Renderer(size * aa, size * aa, aa=aa)
 
     camera_position = Point(0, 2, 5)
     shader = SHADERS[shader_name](camera_position)
@@ -59,9 +59,10 @@ if __name__ == '__main__':
     parser.add_argument('shader', nargs='?', default='phong', choices=SHADERS)
     parser.add_argument('--mesh', default='teapot.obj', help='path, or a file name in assets/models')
     parser.add_argument('--size', type=int, default=512)
+    parser.add_argument('--aa', type=int, default=1, help='supersampling factor (1 = off), cost grows as aa^2')
     parser.add_argument('--out', help='save to a png instead of opening a window')
     args = parser.parse_args()
-    render_mesh(args.mesh, args.shader, args.size, args.out)
+    render_mesh(args.mesh, args.shader, args.size, args.out, args.aa)
 
 
 # Perspective projection
