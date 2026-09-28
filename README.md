@@ -9,6 +9,10 @@ python main.py [normals|flat|gouraud|phong] [--mesh teapot.obj] [--size 512] [--
 ```
 Without `--out` the image opens in a window.
 
+| Flat | Blinn-Phong | Normals |
+|:---:|:---:|:---:|
+| ![flat](images/flat.png) | ![phong](images/phong.png) | ![normals](images/normals.png) |
+
 ### Shaders
 A shader is a class in `shaders.py` with a `vertex()` and a `fragment()` stage.
 `Renderer.draw_triangle(v1, v2, v3, shader, polygon)` runs it. Included: flat,
