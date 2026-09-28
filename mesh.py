@@ -28,6 +28,9 @@ class Mesh:
             )
 
             polygon.normal = normalized(polygon.normal).view(Point)
+            polygon.center = np.mean(
+                [self.vertices[i].position for i in polygon.indices], axis=0
+            ).view(Point)
 
     def calculate_vertices_normals(self):
         # Vertices at the same position (seams of a model, split for uv or
