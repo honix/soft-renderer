@@ -22,3 +22,6 @@ class Buffer:
     def show(self, mode='RGB'):
         img = Image.fromarray(self.data, mode)
         img.show()
+
+    def save(self, path, mode='RGB'):
+        Image.fromarray(self.data, mode).save(path)

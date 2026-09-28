@@ -1,31 +1,28 @@
-import numpy as np
-import math
-import random
+import argparse
 import time
+
+import numpy as np
 
 import matrices
 from renderer import Renderer
 from point import Point
-from mesh import Mesh
+from shaders import SHADERS
 
 
-def test_persp_render():
+def test_persp_render(mesh_path, shader_name, size, out):
     start = time.time_ns()
     print("Start")
 
     from obj import read_obj
 
-    #mesh = read_obj('polygons.obj') # some flat polys
-    #mesh = read_obj('cube.obj') # simples one
-    mesh = read_obj('teapot.obj') # many triangles
-    #mesh = read_obj('lamp.obj') # n-gons
-    #mesh = read_obj('cessna.obj') # doesnt work..
+    # polygons.obj - some flat polys, cube.obj - simplest one,
+    # teapot.obj - many triangles, lamp.obj - n-gons, cessna.obj - doesnt work..
+    mesh = read_obj(mesh_path)
 
-    renderer = Renderer(512, 512)
-    #renderer = Renderer(1024, 1024)
-    #renderer = Renderer(2048, 2048)
+    renderer = Renderer(size, size)
 
     camera_position = Point(0, 2, 5)
+    shader = SHADERS[shader_name](camera_position)
 
     print("Transforming points to screen pos..")
 
@@ -40,6 +37,7 @@ def test_persp_render():
     def transform(vertex):
         vertex_project = np.concatenate((vertex.position, [1]))[:,None]
         vertex_transformed = transform_matrix @ vertex_project
+        vertex.w = float(vertex_transformed[3])
         vertex_transformed /= vertex_transformed[3]
         vertex_unproject = np.asarray(vertex_transformed).flatten()[:3]
 
@@ -55,30 +53,28 @@ def test_persp_render():
     for polygon in mesh.polygons:
         if np.dot(mesh.vertices[polygon.indices[0]].position - camera_position, polygon.normal) >= 0: continue
         vertices = list(map(lambda x: mesh.vertices[x], polygon.indices))
-        renderer.depth_test = True
-        #renderer.draw_fill_triangle(*vertices, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
-        #renderer.draw_fill_triangle(*vertices, (150, 50, 50))
-        renderer.draw_fill_triangle(*vertices, ((polygon.normal.x + 1) / 2 * 255, (polygon.normal.y + 1) / 2 * 255, (polygon.normal.z + 1) / 2 * 255))
-        #renderer.draw_fill_triangle_check_edge(*vertices, ((polygon.normal.x + 1) / 2 * 255, (polygon.normal.y + 1) / 2 * 255, (polygon.normal.z + 1) / 2 * 255))
-        #z = (vertices[0].tposition.z - 0.25) * 255 * 2
-        #renderer.draw_fill_triangle(*vertices, (z, z, z))
-        renderer.depth_test = False
-        #renderer.draw_fill_triangle_lerp(*vertices, (200, 160, 100))
-        #renderer.draw_wire_triangle(*vertices, (100, 160, 200))
+        renderer.draw_triangle(*vertices, shader, polygon)
 
         i += 1
         if i % 50 == 0: print(f"{i} polygons drawn")
 
-    # renderer.depth_test = False
-    # for point in screen_points:
-    #     renderer.draw_pixel(point.x, point.y, point.z, (255, 25, 25))
-
     end = time.time_ns()
     print(f"{(end - start) / 1000000000} seconds ellapsed")
 
-    renderer.show()
+    if out:
+        renderer.save(out)
+    else:
+        renderer.show()
 
-test_persp_render()
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('shader', nargs='?', default='phong', choices=SHADERS)
+    parser.add_argument('--mesh', default='teapot.obj')
+    parser.add_argument('--size', type=int, default=512)
+    parser.add_argument('--out', help='save to a png instead of opening a window')
+    args = parser.parse_args()
+    test_persp_render(args.mesh, args.shader, args.size, args.out)
 
 
 # Perspective projection
