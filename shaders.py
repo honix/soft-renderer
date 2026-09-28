@@ -88,7 +88,7 @@ class FlatShader(LitShader):
     flat = ('color',)
 
     def vertex(self, vertex, polygon):
-        return {'color': self.light(vertex.position, polygon.normal)}
+        return {'color': self.light(polygon.center, polygon.normal)}
 
     def fragment(self, v):
         return v['color']
