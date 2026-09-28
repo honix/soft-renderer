@@ -17,6 +17,9 @@ class Renderer:
     def show(self):
         self.color_buffer.show()
 
+    def save(self, path):
+        self.color_buffer.save(path)
+
     def draw_pixel(self, x, y, z, color):
         x = int(x)
         y = int(y)
@@ -82,9 +85,13 @@ class Renderer:
         self.draw_line(p3, p1, color)
 
     def draw_fill_trapezoid(self, v1, v2, v3, v4, color, y_top=None, y_bottom=None):
+        for x, y, z in self.trapezoid_pixels(v1, v2, v3, v4, y_top, y_bottom):
+            self.draw_pixel(x, y, z, color)
+
+    def trapezoid_pixels(self, v1, v2, v3, v4, y_top=None, y_bottom=None):
         # Left edge is v1 -> v2, right edge is v4 -> v3 (both going down).
         # Rows between y_top and y_bottom are filled, by default the span
-        # where both edges exist.
+        # where both edges exist. Yields (x, y, z) of every covered pixel.
         p1 = v1.tposition
         p2 = v2.tposition
         p3 = v3.tposition
@@ -110,10 +117,14 @@ class Renderer:
             # Depth is sampled at the pixel center too, not at the edge
             z = zleft + (x_start + 0.5 - xleft) * z_step
             for x in range(x_start, ceil(xright - 0.5)):
-                self.draw_pixel(x, y, z, color)
+                yield x, y, z
                 z += z_step
 
     def draw_fill_triangle(self, v1, v2, v3, color):
+        for x, y, z in self.triangle_pixels(v1, v2, v3):
+            self.draw_pixel(x, y, z, color)
+
+    def triangle_pixels(self, v1, v2, v3):
         [top, middle, bottom] = sorted([v1, v2, v3], key=lambda v: v.tposition.y)
         t, m, b = top.tposition, middle.tposition, bottom.tposition
 
@@ -124,11 +135,64 @@ class Renderer:
         # Always pass the real edge endpoints (never a lerped split point),
         # so a shared edge is evaluated identically by both triangles
         if cross < 0:  # middle is on the left
-            self.draw_fill_trapezoid(top, middle, bottom, top, color, t.y, m.y)
-            self.draw_fill_trapezoid(middle, bottom, bottom, top, color, m.y, b.y)
+            yield from self.trapezoid_pixels(top, middle, bottom, top, t.y, m.y)
+            yield from self.trapezoid_pixels(middle, bottom, bottom, top, m.y, b.y)
         else:
-            self.draw_fill_trapezoid(top, bottom, middle, top, color, t.y, m.y)
-            self.draw_fill_trapezoid(top, bottom, bottom, middle, color, m.y, b.y)
+            yield from self.trapezoid_pixels(top, bottom, middle, top, t.y, m.y)
+            yield from self.trapezoid_pixels(top, bottom, bottom, middle, m.y, b.y)
+
+    def draw_triangle(self, v1, v2, v3, shader, polygon=None):
+        """Rasterize a triangle with a shader (see shaders.py).
+
+        The vertex stage runs once per vertex, its outputs (varyings) are
+        interpolated perspective-correctly over the triangle, and the
+        fragment stage runs once per pixel that passes the depth test.
+        """
+        vertices = (v1, v2, v3)
+        outputs = [shader.vertex(v, polygon) for v in vertices]
+        names = list(outputs[0].keys())
+        # Pack varyings into one array per vertex so a pixel is one numpy op
+        packed = [np.concatenate([np.atleast_1d(np.asarray(o[n], dtype=float)) for n in names]) for o in outputs]
+        sizes = [np.size(outputs[0][n]) for n in names]
+        scalar = [np.ndim(outputs[0][n]) == 0 for n in names]
+
+        flat = getattr(shader, 'flat', ())
+
+        a, b, c = (v.tposition for v in vertices)
+        area = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
+        if area == 0: return
+
+        # Perspective correction: varying/w and 1/w are linear in screen
+        # space, so interpolate those and divide per pixel
+        inv_w = [1 / v.w for v in vertices]
+        weighted = [p * iw for p, iw in zip(packed, inv_w)]
+
+        for x, y, z in self.triangle_pixels(v1, v2, v3):
+            if not (0 <= x < self.width and 0 <= y < self.height): continue
+            if self.depth_test and self.depth_buffer[y, x] < z: continue
+
+            # Barycentric weights at the pixel center
+            px, py = x + 0.5, y + 0.5
+            l1 = ((b.x - px) * (c.y - py) - (b.y - py) * (c.x - px)) / area
+            l2 = ((c.x - px) * (a.y - py) - (c.y - py) * (a.x - px)) / area
+            l3 = 1 - l1 - l2
+            w = l1 * inv_w[0] + l2 * inv_w[1] + l3 * inv_w[2]
+            values = (l1 * weighted[0] + l2 * weighted[1] + l3 * weighted[2]) / w
+
+            varyings = {}
+            i = 0
+            for name, size, is_scalar in zip(names, sizes, scalar):
+                varyings[name] = values[i] if is_scalar else values[i:i + size]
+                i += size
+
+            # 'flat' varyings are not interpolated: first vertex provokes
+            for name in flat:
+                varyings[name] = outputs[0][name]
+
+            color = shader.fragment(varyings)
+            if color is None: continue  # discard, like GLSL's discard
+            if self.depth_test: self.depth_buffer[y, x] = z
+            self.color_buffer[y, x] = np.clip(np.asarray(color, dtype=float) * 255, 0, 255)
 
     def draw_fill_triangle_lerp(self, v1, v2, v3, color):
         for i in range(0, 8):
