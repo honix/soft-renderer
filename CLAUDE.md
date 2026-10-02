@@ -7,13 +7,17 @@ Software renderer in Python. No GPU, no OpenGL; everything is rasterized in nump
 - Test: `pytest` (from the repo root) must pass after any change; CI runs it too.
 
 ## Layout
-- `main.py`: CLI and per-mesh draw loop (`render_mesh`). Bare `--mesh` names resolve in `assets/models/`.
+- `main.py`: CLI, demo scene (`teapots_scene`) and the draw loop (`render`: shadow pass, then camera pass). Bare `--mesh` names resolve in `assets/models/`.
 - `softrender/`: the package.
   - `raster/renderer.py`: lines, triangle fill. `triangle_pixels()` decides coverage
     (top-left rule, no cracks or double draws); `draw_triangle()` clips at the near plane and runs a shader on top of it.
     `raster/buffer.py`: color/depth buffers.
   - `shaders.py`: `Shader` base (`vertex` / `fragment` stages, instance attributes act as
     uniforms). Flat, Gouraud, Blinn-Phong all share `LitShader.light()`.
+  - `scene.py`: `Node` tree (local transform, mesh, material kwargs for the shader, children);
+    `world_meshes()` copies each mesh into world space. `plane()` builds a subdivided ground.
+  - `shadow.py`: `ShadowMap` for one directional light: ortho depth pass, then `visibility()`
+    (normal offset + 3x3 PCF), used by `LitShader.light()`.
   - `camera.py`: view/projection matrix and `project()`, which sets `vertex.clip`, `vertex.tposition` and `vertex.w`.
   - `geometry/`: `point`, `matrices`, `vertex`, `polygon`, `mesh`, `obj`. Normals are unit length,
     and vertices at the same position share a smooth normal.

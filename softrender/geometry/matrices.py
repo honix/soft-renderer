@@ -5,8 +5,6 @@ from math import pi, cos, sin
 # https://www.brainvoyager.com/bv/doc/UsersGuide/CoordsAndTransforms/SpatialTransformationMatrices.html
 # https://www.youtube.com/watch?v=mpTl003EXCY&list=LLa6zoMLQWrtFEn4pp0W2Tzg
 
-# TODO: ortho
-
 # https://gitlab.freedesktop.org/mesa/mesa/blob/master/src/mesa/math/m_matrix.c#L982
 def frustrum(left = -1, right = 1,
              bottom = 1, top = -1,
@@ -24,6 +22,18 @@ def frustrum(left = -1, right = 1,
         [0,  y,  b,  0],
         [0,  0,  c,  d],
         [0,  0, -1,  0],
+    ])
+
+def ortho(left = -1, right = 1,
+          bottom = 1, top = -1,
+          near = 1, far = 1000):
+    # Like frustrum, but parallel rays: for directional light shadow maps.
+    # Same flipped bottom/top default, so screen y points down.
+    return np.matrix([
+        [2 / (right - left), 0, 0, -(right + left) / (right - left)],
+        [0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom)],
+        [0, 0, -2 / (far - near), -(far + near) / (far - near)],
+        [0, 0, 0, 1],
     ])
 
 def transpose(x, y, z):
@@ -56,6 +66,24 @@ def rotate_y(t):
         [      0,      1,      0, 0],
         [-sin(t),      0, cos(t), 0],
         [      0,      0,      0, 1],
+    ])
+
+def rotate_x(t):
+    return np.matrix([
+        [1,      0,       0, 0],
+        [0, cos(t), -sin(t), 0],
+        [0, sin(t),  cos(t), 0],
+        [0,      0,       0, 1],
+    ])
+
+def scale(x, y=None, z=None):
+    y = x if y is None else y
+    z = x if z is None else z
+    return np.matrix([
+        [x, 0, 0, 0],
+        [0, y, 0, 0],
+        [0, 0, z, 0],
+        [0, 0, 0, 1],
     ])
 
 def screen(width, height):
