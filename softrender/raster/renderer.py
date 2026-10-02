@@ -110,7 +110,9 @@ class Renderer:
         # [left, right). Two triangles sharing an edge then compute the exact
         # same edge position, so every pixel goes to exactly one of them:
         # no holes and no double drawing.
-        for y in range(ceil(y_top - 0.5), ceil(y_bottom - 0.5)):
+        # Rows and columns off the screen are skipped, a triangle clipped at
+        # the near plane can reach far outside it
+        for y in range(max(ceil(y_top - 0.5), 0), min(ceil(y_bottom - 0.5), self.height)):
             yc = y + 0.5
             xleft, zleft = edge_at(p1, p2, yc)
             xright, zright = edge_at(p4, p3, yc)
@@ -118,10 +120,10 @@ class Renderer:
             dx = xright - xleft
             z_step = (zright - zleft) / dx if dx > 0 else 0
 
-            x_start = ceil(xleft - 0.5)
+            x_start = max(ceil(xleft - 0.5), 0)
             # Depth is sampled at the pixel center too, not at the edge
             z = zleft + (x_start + 0.5 - xleft) * z_step
-            for x in range(x_start, ceil(xright - 0.5)):
+            for x in range(x_start, min(ceil(xright - 0.5), self.width)):
                 yield x, y, z
                 z += z_step
 
@@ -152,6 +154,8 @@ class Renderer:
         The vertex stage runs once per vertex, its outputs (varyings) are
         interpolated perspective-correctly over the triangle, and the
         fragment stage runs once per pixel that passes the depth test.
+        Vertices with vertex.clip set (see camera.project) are clipped at the
+        near plane first, so a triangle may reach behind the camera.
         """
         vertices = (v1, v2, v3)
         outputs = [shader.vertex(v, polygon) for v in vertices]
@@ -162,6 +166,20 @@ class Renderer:
         scalar = [np.ndim(outputs[0][n]) == 0 for n in names]
 
         flat = getattr(shader, 'flat', ())
+
+        # Clip against the near plane in clip space (before the divide), the
+        # polygon that is left is drawn as a fan of triangles
+        corners = list(zip(vertices, packed))
+        if all(v.clip is not None for v in vertices):
+            corners = clip_near(corners)
+        for i in range(1, len(corners) - 1):
+            self.shade_triangle(corners[0], corners[i], corners[i + 1], shader, names, sizes, scalar, outputs[0], flat)
+
+    def shade_triangle(self, c1, c2, c3, shader, names, sizes, scalar, provoking, flat):
+        # Each corner is (vertex, packed varyings)
+        vertices = (c1[0], c2[0], c3[0])
+        packed = (c1[1], c2[1], c3[1])
+        v1, v2, v3 = vertices
 
         a, b, c = (v.tposition for v in vertices)
         area = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
@@ -192,7 +210,7 @@ class Renderer:
 
             # 'flat' varyings are not interpolated: first vertex provokes
             for name in flat:
-                varyings[name] = outputs[0][name]
+                varyings[name] = provoking[name]
 
             color = shader.fragment(varyings)
             if color is None: continue  # discard, like GLSL's discard
@@ -236,3 +254,25 @@ def edge_at(a, b, y):
     # triangle that shares this edge.
     t = (y - a.y) / (b.y - a.y)
     return lerp(a.x, b.x, t), lerp(a.z, b.z, t)
+
+
+def clip_near(corners):
+    # Sutherland-Hodgman against the near plane z = -w, in clip space. Corners
+    # are (vertex, packed varyings); clip coordinates and varyings are both
+    # linear there, so a new corner on the plane is a lerp of the two ends.
+    # Always lerp from the inside end, so a shared edge gets the same point
+    # in both triangles.
+    result = []
+    for a, b in zip(corners, corners[1:] + corners[:1]):
+        da = a[0].clip[2] + a[0].clip[3]  # >= 0 is in front of the near plane
+        db = b[0].clip[2] + b[0].clip[3]
+        if da >= 0: result.append(a)
+        if (da >= 0) != (db >= 0):
+            (inside, di), (outside, do) = ((a, da), (b, db)) if da >= 0 else ((b, db), (a, da))
+            t = di / (di - do)
+            vertex = Vertex(None)
+            vertex.clip = lerp(inside[0].clip, outside[0].clip, t)
+            vertex.w = vertex.clip[3]
+            vertex.tposition = (vertex.clip[:3] / vertex.w).view(Point)
+            result.append((vertex, lerp(inside[1], outside[1], t)))
+    return result

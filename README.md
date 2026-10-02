@@ -23,5 +23,6 @@ Gouraud, Blinn-Phong and a normals debug view. Write your own by subclassing `Sh
 ### Tests
 ```
 python -m tests.test_watertight
+python -m tests.test_near_clip
 python -m tests.test_2d_renderer
 ```
