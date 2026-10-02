@@ -4,9 +4,8 @@ import time
 
 import numpy as np
 
-from softrender.camera import project, view_projection
+from softrender.camera import frame, project, view_projection
 from softrender.geometry.obj import read_obj
-from softrender.geometry.point import Point
 from softrender.raster.renderer import Renderer
 from softrender.shaders import SHADERS
 
@@ -18,19 +17,19 @@ def render_mesh(mesh_path, shader_name, size, out, aa=1):
     print("Start")
 
     # polygons.obj - some flat polys, cube.obj - simplest one,
-    # teapot.obj - many triangles, lamp.obj - n-gons, cessna.obj - doesnt work..
+    # teapot.obj - many triangles, lamp.obj - n-gons, cessna.obj - big one
     if not os.path.exists(mesh_path):
         mesh_path = os.path.join(MODELS_DIR, mesh_path)
     mesh = read_obj(mesh_path)
 
     renderer = Renderer(size * aa, size * aa, aa=aa)
 
-    camera_position = Point(0, 2, 5)
+    camera_position, target = frame([v.position for v in mesh.vertices], renderer.width, renderer.height)
     shader = SHADERS[shader_name](camera_position)
 
     print("Transforming points to screen pos..")
 
-    transform_matrix = view_projection(camera_position, renderer.width, renderer.height)
+    transform_matrix = view_projection(camera_position, target, renderer.width, renderer.height)
     for vertex in mesh.vertices:
         project(vertex, transform_matrix)
 

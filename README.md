@@ -7,7 +7,7 @@ A tiny software 3D renderer in Python (numpy + Pillow), with game-style shaders.
 pip install -r requirements.txt
 python main.py [normals|flat|gouraud|phong] [--mesh teapot.obj] [--size 512] [--aa 2] [--out image.png]
 ```
-Without `--out` the image opens in a window.
+Without `--out` the image opens in a window. The camera looks at the mesh from the front and above and moves back until the whole mesh fits the view.
 
 `--aa N` renders at N times the resolution and averages down (supersampling). Edges get smooth, but render time grows as N². Sample images below use `--size 512 --aa 3`, cropped.
 
