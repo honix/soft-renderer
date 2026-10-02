@@ -12,9 +12,12 @@ Whatever is set on the shader instance (light, camera, colors...) plays the
 role of uniforms. A class can list varying names in `flat` to skip the
 interpolation and take the value of the triangle's first vertex instead.
 
-Everything is in world space, the meshes have no model matrix yet.
+Everything is in world space: scene nodes move their meshes into world
+space before drawing (see scene.py).
 """
 import numpy as np
+
+LIGHT_DIRECTION = (0.6, 1.0, 0.8)  # points towards the light
 
 
 def normalize(v):
@@ -54,12 +57,13 @@ class LitShader(Shader):
 
     def __init__(self,
                  camera_position,
-                 light_direction=(0.6, 1.0, 0.8),  # points towards the light
+                 light_direction=LIGHT_DIRECTION,
                  light_color=(1, 1, 1),
                  ambient=(0.12, 0.12, 0.15),
                  albedo=(0.75, 0.25, 0.2),
                  specular=0.6,
-                 shininess=48):
+                 shininess=48,
+                 shadow=None):  # a ShadowMap (shadow.py) rendered for this light
         self.camera_position = np.asarray(camera_position, dtype=float)
         self.light_direction = normalize(np.asarray(light_direction, dtype=float))
         self.light_color = np.asarray(light_color, dtype=float)
@@ -67,6 +71,7 @@ class LitShader(Shader):
         self.albedo = np.asarray(albedo, dtype=float)
         self.specular = specular
         self.shininess = shininess
+        self.shadow = shadow
 
     def light(self, position, normal):
         n = normalize(normal)
@@ -77,6 +82,11 @@ class LitShader(Shader):
         # Blinn: half vector instead of Phong's reflected vector
         half = normalize(to_light + to_camera)
         specular = max(np.dot(n, half), 0) ** self.shininess if diffuse > 0 else 0
+
+        if diffuse > 0 and self.shadow is not None:
+            visible = self.shadow.visibility(position, n)
+            diffuse *= visible
+            specular *= visible
 
         color = self.albedo * (self.ambient + self.light_color * diffuse) \
             + self.light_color * self.specular * specular
