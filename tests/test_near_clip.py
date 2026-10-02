@@ -5,7 +5,8 @@
 # (varyings survive clipping).
 import numpy as np
 
-from softrender.camera import project, view_projection
+from softrender.camera import project
+from softrender.geometry import matrices
 from softrender.geometry.point import Point
 from softrender.geometry.polygon import Polygon
 from softrender.geometry.vertex import Vertex
@@ -25,7 +26,9 @@ class PositionShader(Shader):
 def test_near_clip(size=128):
     camera = Point(0, 2, 5)
     renderer = Renderer(size, size)
-    transform_matrix = view_projection(camera, size, size)
+    # Built here instead of camera.view_projection, so the ray cast below
+    # can rely on this exact camera: 90 degree view, looking down -z
+    transform_matrix = matrices.screen(size, size) * matrices.frustrum() * matrices.transpose(*-camera)
 
     corners = [(-40, -40), (40, -40), (40, 30), (-40, 30)]  # (x, z), camera is at z = 5
     vertices = [Vertex(Point(x, 0, z), Point(0, 1, 0)) for x, z in corners]
