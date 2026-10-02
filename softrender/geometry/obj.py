@@ -25,26 +25,10 @@ def read_obj(path):
                 indices = phrases[1:]
                 length = len(indices)
 
-                def add_polygon(a, b, c):
-                    p1 = int(indices[a].split('/')[0]) - 1
-                    p2 = int(indices[b].split('/')[0]) - 1
-                    p3 = int(indices[c].split('/')[0]) - 1
-                    polygons.append(Polygon([p1, p2, p3]))
-
-                # TODO: algoritmize
-                if length == 3:
-                    add_polygon(0, 1, 2)
-                elif length == 4:
-                    add_polygon(0, 1, 2)
-                    add_polygon(0, 2, 3)
-                elif length == 5:
-                    add_polygon(0, 1, 2)
-                    add_polygon(0, 2, 3)
-                    add_polygon(0, 3, 4)
-                elif length == 6:
-                    add_polygon(0, 1, 2)
-                    add_polygon(0, 2, 3)
-                    add_polygon(0, 3, 4)
-                    add_polygon(0, 4, 5)
+                first = int(indices[0].split('/')[0]) - 1
+                for i in range(1, length - 1):
+                    p2 = int(indices[i].split('/')[0]) - 1
+                    p3 = int(indices[i + 1].split('/')[0]) - 1
+                    polygons.append(Polygon([first, p2, p3]))
             
     return Mesh(vertices, polygons)
