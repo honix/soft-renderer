@@ -4,6 +4,7 @@ class Vertex:
     def __init__(self, position, normal=None):
         self.position = position
         self.tposition = position
+        self.clip = None  # clip-space x, y, z, w, before the perspective divide
         self.w = 1  # clip-space w, kept for perspective-correct interpolation
 
         self.normal = normal
