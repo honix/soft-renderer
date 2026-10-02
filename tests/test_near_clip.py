@@ -69,5 +69,6 @@ def test_near_clip(size=128):
     assert error < 1e-4, f"interpolated position off by {error}"
 
 
-test_near_clip()
-print("ok")
+if __name__ == '__main__':
+    test_near_clip()
+    print("ok")
