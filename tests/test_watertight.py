@@ -7,7 +7,7 @@ from softrender.raster.renderer import Renderer
 from softrender.geometry.vertex import Vertex
 from softrender.geometry.point import Point
 
-def test_watertight(seed, snap=False, size=256, cells=9):
+def check_watertight(seed, snap=False, size=256, cells=9):
     random.seed(seed)
     renderer = Renderer(size, size, depth_test=False)
     hits = np.zeros((size, size), int)
@@ -53,7 +53,12 @@ def test_watertight(seed, snap=False, size=256, cells=9):
     overdraw = (hits > 1).sum()
     assert holes == 0 and overdraw == 0, f"seed {seed}: {holes} holes, {overdraw} pixels drawn twice"
 
-for seed in range(20):
-    test_watertight(seed)
-    test_watertight(seed, snap=True)
-print("ok")
+def test_watertight():
+    for seed in range(20):
+        check_watertight(seed)
+        check_watertight(seed, snap=True)
+
+
+if __name__ == '__main__':
+    test_watertight()
+    print("ok")

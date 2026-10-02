@@ -4,7 +4,7 @@ Software renderer in Python. No GPU, no OpenGL; everything is rasterized in nump
 
 - Needs `numpy==1.23.5` (code uses `np.float` / `np.int`, removed in newer numpy).
 - Run: `python main.py phong --out out.png` (see README for options).
-- Test: `python -m tests.test_watertight` and `python -m tests.test_near_clip` (from the repo root) must print `ok` after any rasterizer change.
+- Test: `pytest` (from the repo root) must pass after any change; CI runs it too.
 
 ## Layout
 - `main.py`: CLI, demo scene (`teapots_scene`) and the draw loop (`render`: shadow pass, then camera pass). Bare `--mesh` names resolve in `assets/models/`.
@@ -21,7 +21,7 @@ Software renderer in Python. No GPU, no OpenGL; everything is rasterized in nump
   - `camera.py`: view/projection matrix and `project()`, which sets `vertex.clip`, `vertex.tposition` and `vertex.w`.
   - `geometry/`: `point`, `matrices`, `vertex`, `polygon`, `mesh`, `obj`. Normals are unit length,
     and vertices at the same position share a smooth normal.
-- `assets/models/`: .obj meshes. `docs/images/`: README screenshots. `tests/`: run with `python -m tests.<name>`.
+- `assets/models/`: .obj meshes. `docs/images/`: README screenshots. `tests/`: pytest files (`test_*` functions with plain asserts), each also runnable as `python -m tests.<name>`.
 
 ## Conventions
 - Screen y points down; the camera looks down -z. Everything shading-related is in world space.

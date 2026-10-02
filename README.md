@@ -36,7 +36,7 @@ Gouraud, Blinn-Phong and a normals debug view. Write your own by subclassing `Sh
 
 ### Tests
 ```
-python -m tests.test_watertight
-python -m tests.test_near_clip
-python -m tests.test_2d_renderer
+pip install -r requirements.txt
+pytest
 ```
+Runs everything in `tests/`. A single file runs with `pytest tests/test_watertight.py`, add `-v` to see each test. CI runs the same on every push and pull request.
