@@ -33,7 +33,10 @@ class ShadowMap:
         positions = np.asarray(positions, dtype=float)
         center = (positions.min(axis=0) + positions.max(axis=0)) / 2
         radius = np.max(np.linalg.norm(positions - center, axis=1))
-        view = matrices.look_at(center + light_direction * radius * 2, center)
+        # look_at needs an up vector that isn't along the view, a light from
+        # straight above would have none
+        up = (0, 0, -1) if abs(light_direction[1]) > 0.99 else (0, 1, 0)
+        view = matrices.look_at(center + light_direction * radius * 2, center, up)
         light_space = np.c_[positions, np.ones(len(positions))] @ np.asarray(view).T
         (left, bottom, _), (right, top, _) = light_space[:, :3].min(axis=0), light_space[:, :3].max(axis=0)
         # Square texels, so the normal offset is the same in x and y
